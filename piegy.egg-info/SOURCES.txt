@@ -1,7 +1,6 @@
 LICENSE.txt
 README.md
 pyproject.toml
-setup.cfg
 setup.py
 piegy.egg-info/PKG-INFO
 piegy.egg-info/SOURCES.txt

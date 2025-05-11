@@ -39,5 +39,7 @@ classifiers = [
 
 
 [project.urls]
-Homepage = 'https://github.com/xiaomao05/Payoff-Driven_EGT'
+Source = 'https://github.com/Chenning04/piegy.git'
+Documentation = 'https://piegy.readthedocs.io/en/'
+
 

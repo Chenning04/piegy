@@ -15,8 +15,8 @@ setup(
     'imageio>=2.37.0',
     're',
     'moviepy>=1.0.3',
-    'seaborn>=0.13.2'
-    ]
+    'seaborn>=0.13.2',
+    ],
     long_description = open('README.md').read(),
     long_description_content_type = 'text/markdown',
     classifiers = [

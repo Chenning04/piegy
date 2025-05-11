@@ -1,0 +1,11 @@
+json
+gzip
+os
+numpy
+matplotlib
+math
+timeit
+imageio>=2.37.0
+re
+moviepy>=1.0.3
+seaborn>=0.13.2

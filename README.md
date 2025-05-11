@@ -17,5 +17,5 @@ Documentation at: [piegy docs](https://piegy.readthedocs.io/en/)
 
 ## Acknowledgments
 
-- Thanks Professor Daniel Cooney at University of Illinois Urbana Champaign. This package is developed alongside a project with Prof. Cooney and received enormous help from him.
+- Thanks Professor Daniel Cooney at University of Illinois Urbana-Champaign. This package is developed alongside a project with Prof. Cooney and received enormous help from him.
 - Special thanks to the open-source community for making this project possible.

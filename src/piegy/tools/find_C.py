@@ -6,7 +6,7 @@ import os
 
 
 def find_C():
-    C_core_path = os.path.join(os.path.dirname(__file__), 'C_core')
+    C_core_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'C_core')
     C_list = os.listdir(C_core_path)
     for file in C_list:
         if file[-3:] == '.so':

@@ -27,8 +27,8 @@ from .data_tools import save_data, read_data
 
 from .analysis import rounds_expected, scale_maxtime, check_convergence, combine_sim
 
-from .figures import (UV_heatmap, UV_bar, UV_dyna, UV_hist, UV_std, UV_expected, 
-                      pi_heatmap, pi_bar, pi_dyna, pi_hist, pi_std, UV_pi)
+from .figures import (UV_hmap, UV_bar, UV_dyna, UV_hist, UV_std, UV_expected, 
+                      pi_hmap, pi_bar, pi_dyna, pi_hist, pi_std, UV_pi)
 
 from .test_var import (test_var1, var_UV1, var_pi1, var_convergence1, get_dirs1, 
                        test_var2, var_UV2, var_pi2, var_convergence2, get_dirs2)
@@ -42,8 +42,8 @@ data_members = ['save_data', 'read_data']
 
 analysis_members = ['expected_rounds', 'scale_maxtime', 'check_convergence', 'combine_mod']
 
-figures_members = ['UV_heatmap', 'UV_bar', 'UV_dyna', 'UV_hist', 'UV_std', 'UV_expected_val', 'UV_expected', 
-                   'pi_heatmap', 'pi_bar', 'pi_dyna', 'pi_hist', 'pi_std', 'UV_pi']
+figures_members = ['UV_hmap', 'UV_bar', 'UV_dyna', 'UV_hist', 'UV_std', 'UV_expected_val', 'UV_expected', 
+                   'pi_hmap', 'pi_bar', 'pi_dyna', 'pi_hist', 'pi_std', 'UV_pi']
 
 test_var_members = ['test_var1', 'var_UV1', 'var_pi1', 'var_convergence1', 'get_dirs1', 
                     'test_var2', 'var_UV2', 'var_pi2', 'var_convergence2', 'get_dirs2']

@@ -12,7 +12,7 @@ Class & Functions:
 - check_overflow_func:  check whether an overflow might happen in simulation. This is usually done automatically when init-ing a model.
 '''
 
-from . import find_C
+from .tools import find_C
 
 import numpy as np
 import os

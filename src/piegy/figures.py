@@ -2,9 +2,9 @@
 Contains all the major plot functions. 
 
 Plots for population:
-- UV_heatmap:       Used for 2D space (both N, M > 1), plot distribution of U, V in all patches within a specified time interval.
+- UV_hmap:       Used for 2D space (both N, M > 1), plot distribution of U, V in all patches within a specified time interval.
                     Average population over that interval is taken.
-- UV_bar:           Used for 1D space (N or M == 1), counterpart of UV_heatmap.
+- UV_bar:           Used for 1D space (N or M == 1), counterpart of UV_hmap.
                     Plot average distribution of U, V in a specified time interval in a barplot.
 - UV_dyna:         Plot change of total U, V overtime.
 - UV_hist:          Make a histogram of U, V in a specified time interval.
@@ -13,9 +13,9 @@ Plots for population:
 
 
 Plots for payoff:
-- pi_heatmap:       Used for 2D space, plot distribution of Upi & Vpiwithin a specified time interval.
+- pi_hmap:       Used for 2D space, plot distribution of Upi & Vpiwithin a specified time interval.
                     Average payoff over that interval is taken.
-- pi_bar:           Used for 1D space, counterpart of pi_heatmap.
+- pi_bar:           Used for 1D space, counterpart of pi_hmap.
                     Plot average distribution of Upi & Vpiin a specified time interval in a bar plot.
 - pi_dyna:         Plot change of total Upi, Vpiovertime.
 - pi_hist:          Make a histogram of Upi, Vpiin a specified time interval.
@@ -40,9 +40,12 @@ import numpy as np
 # used by UV_dyna, UV_std, and pi_dyna
 CURVE_TYPE = '-'
 
+# default heatmap value range, which is None
+DEFAULT_HMAP_VRANGE = (None, None)
 
 
-def UV_heatmap(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Greens', start = 0.95, end = 1.0, annot = False, fmt = '.3g'):
+
+def UV_hmap(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Greens', start = 0.95, end = 1.0, vrange_U = DEFAULT_HMAP_VRANGE, vrange_V = DEFAULT_HMAP_VRANGE):
     '''
     Makes two heatmaps for U, V average distribution over a time interval, respectively. Works best for 2D space.
     1D works as well, but figures look bad.
@@ -76,8 +79,8 @@ def UV_heatmap(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Gr
     V_title = figure_t.gen_title('Popu V', start, end)
     V_text = figure_t.gen_text(np.mean(V_ave), np.std(V_ave))
 
-    ax_U = figure_t.heatmap(U_ave, ax_U, U_color, annot, fmt, U_title, U_text)
-    ax_V = figure_t.heatmap(V_ave, ax_V, V_color, annot, fmt, V_title, V_text)
+    figure_t.hmap(U_ave, ax_U, U_color, U_title, U_text, vmin = vrange_U[0], vmax = vrange_U[1])
+    figure_t.hmap(V_ave, ax_V, V_color, V_title, V_text, vmin = vrange_V[0], vmax = vrange_V[1])
         
     return ax_U, ax_V
     
@@ -252,7 +255,7 @@ def UV_std(mod, ax = None, interval = 20, grid = True):
 
 
 
-def UV_expected(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Greens', annot = False, fmt = '.3g'):
+def UV_expected(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Greens', vrange_U = DEFAULT_HMAP_VRANGE, vrange_V = DEFAULT_HMAP_VRANGE):
     '''
     Calculate expected population distribution based on matrices, assuming no migration.
     For the formulas, see stochastic_mode.expected_UV
@@ -274,8 +277,8 @@ def UV_expected(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'G
     
     if (mod.N != 1) and (mod.M != 1):
         # 2D
-        ax_U = figure_t.heatmap(U_expected, ax_U, U_color, annot, fmt, title = 'Expected U', text = U_text)
-        ax_V = figure_t.heatmap(V_expected, ax_V, V_color, annot, fmt, title = 'Expected V', text = V_text)
+        figure_t.hmap(U_expected, ax_U, U_color, title = 'Expected U', text = U_text, vmin = vrange_U[0], vmax = vrange_U[1])
+        figure_t.hmap(V_expected, ax_V, V_color, title = 'Expected V', text = V_text, vmin = vrange_V[0], vmax = vrange_V[1])
 
     else:
         # 1D     
@@ -287,7 +290,7 @@ def UV_expected(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'G
 
 
 
-def pi_heatmap(mod, ax_U = None, ax_V = None, U_color = 'BuPu', V_color = 'YlGn', start = 0.95, end = 1.0, annot = False, fmt = '.3g'):
+def pi_hmap(mod, ax_U = None, ax_V = None, U_color = 'BuPu', V_color = 'YlGn', start = 0.95, end = 1.0, vrange_U = DEFAULT_HMAP_VRANGE, vrange_V = DEFAULT_HMAP_VRANGE):
     '''
     Make heatmaps for payoff in a specified interval.
     Works best for 2D. 1D works as well, but figures look bad.
@@ -296,7 +299,7 @@ def pi_heatmap(mod, ax_U = None, ax_V = None, U_color = 'BuPu', V_color = 'YlGn'
         Note the colors are matplotlib color maps.
 
     Returns:
-        ax_U, ax_V: Seaborn heatmaps, for U's & V's payoff distribution, respectively.
+        ax_U, ax_V: matplotlibrn heatmaps, for U's & V's payoff distribution, respectively.
     '''
     
     start_index = int(mod.max_record * start)
@@ -310,8 +313,8 @@ def pi_heatmap(mod, ax_U = None, ax_V = None, U_color = 'BuPu', V_color = 'YlGn'
     V_title = figure_t.gen_title('Payoff ' + r'$p_V$', start, end)
     V_text = figure_t.gen_text(np.mean(V_pi_ave), np.std(V_pi_ave))
     
-    ax_U = figure_t.heatmap(Upi_ave, ax_U, U_color, annot, fmt, U_title, U_text)
-    ax_V = figure_t.heatmap(V_pi_ave, ax_V, V_color, annot, fmt, V_title, V_text)
+    figure_t.hmap(Upi_ave, ax_U, U_color, U_title, U_text, vmin = vrange_U[0], vmax = vrange_U[1])
+    figure_t.hmap(V_pi_ave, ax_V, V_color, V_title, V_text, vmin = vrange_V[0], vmax = vrange_V[1])
 
     return ax_U, ax_V
 

@@ -16,13 +16,13 @@ Functions:
 
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+
 
 # move ax a bit left if add text
 # default value is [0.125, 0.11, 0.9, 0.88]
 
 
-def heatmap(data, ax = None, cmap = "Greens", annot = False, fmt = '.3g', title = None, text = None):
+def hmap(data, ax = None, cmap = "Greens", title = None, text = None, vmin = None, vmax = None):
     '''
     Helper function for making heatmaps.
 
@@ -30,22 +30,23 @@ def heatmap(data, ax = None, cmap = "Greens", annot = False, fmt = '.3g', title 
         data:   1D data for which you want to make a heatmap. 
         ax:     matplotlib ax to plot on. 
         cmap:   Color of heatmap. Uses matplotlib color maps
-        annot:  Whether to show numbers of every block.
-        fmt:    Number format for annotations. How many digits you want to keep.
         title:  The title you want to add. None means no title.
         text:   Adds some text in a text block at the top-right corner.
 
     Returns:
-        fig:    Seaborn heatmap.
+        ax:    matplotlib axes with heatmap plotted upon.
     '''
 
     if ax == None:
-        _, ax = plt.subplots()
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
 
     if text != None:
         ax.text(0.8, 1.025, text, size = 10, linespacing = 1.5, transform = ax.transAxes)
 
-    ax = sns.heatmap(data, ax = ax, cmap = cmap, annot = annot, fmt = fmt)
+    im = ax.imshow(data, cmap = cmap, vmin = vmin, vmax = vmax)
+    fig.colorbar(im, ax = ax)
     ax.set_title(title, x = 0.5, y = 1)
     
     return ax
@@ -66,7 +67,7 @@ def bar(data, ax = None, color = "green", xlabel = None, ylabel = None, title = 
         text:   Adds some text in a text block at the top-right corner.
     
     Returns:
-        fig:    A Matplotlib barplot.
+        ax:     matplotlib axes with barplot made upon.
     '''
 
     N = np.array(data).size
@@ -102,7 +103,7 @@ def scatter(X, Y, ax = None, color = "orange", alpha = 0.25, xlabel = "x", ylabe
         Note color is Matplotlib colors.
     
     Returns:
-        fig:    A Matplotlib scatter plot.
+        ax:     matplotlib axes with scatter plot made upon.
     '''
     
     if ax == None:

@@ -19,7 +19,7 @@ class BuildSharedLib(build_ext):
 
     def build_extension(self, ext):
         if sys.platform == 'win32':
-            lib_name = 'piegyc.dll'
+            lib_name = 'piegyc.pyd'
         else:
             lib_name = 'piegyc.so'
         so_path = os.path.abspath(f'src/piegy/C_core/{lib_name}')
@@ -27,6 +27,17 @@ class BuildSharedLib(build_ext):
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
         self.copy_file(so_path, target_path)
+        self.rm_duplicate()
+
+    def rm_duplicate(self):
+        C_core_path = os.path.abspath(f'src/piegy/C_core')
+        so_name = 'piegyc.so'
+        if sys.platform == 'win32':
+            so_name = 'piegyc.pyd'
+        try:
+            os.remove(os.path.join(C_core_path, so_name))
+        except OSError:
+            pass
 
 
 

@@ -10,11 +10,11 @@ LDFLAGS_COMMON = -flto
 
 ## Flags for Debugging ##
 # slower, debuggable with lldb, with Address Sanitizer. Don't use in python
-#CFLAGS = -g -std=c99 -Wall -Wextra -MMD -MP -fsanitize=address,undefined -fno-omit-frame-pointer
-#LDFLAGS = -fsanitize=address,undefined
+#CFLAGS_COMMON = -g -std=c99 -Wall -Wextra -MMD -MP -fsanitize=address,undefined -fno-omit-frame-pointer
+#LDFLAGS_COMMON = -fsanitize=address,undefined
 # slower, regular build, allow lldb
-#CFLAGS = -g -std=c99 -Wall -Wextra -MMD -MP
-#LDFLAGS = 
+#CFLAGS_COMMON = -g -std=c99 -Wall -Wextra -MMD -MP
+#LDFLAGS_COMMON = 
 
 
 #### OS specific ####
@@ -54,7 +54,7 @@ DEPS = $(OBJ:.o=.d) $(RUNNER_DEPS)
 TEST = runner
 ifeq '$(findstring ;,$(PATH))' ';'
     # windows
-    SHARED_LIB = piegyc.dll
+    SHARED_LIB = piegyc.pyd
 else
     SHARED_LIB = piegyc.so
 endif
@@ -83,7 +83,7 @@ $(SHARED_LIB): $(OBJ)
 
 # Clean build files
 clean:
-	rm -f $(OBJ) $(RUNNER_OBJ) $(TEST) $(SHARED_LIB) $(DEPS)
+	rm -f $(OBJ) $(RUNNER_OBJ) $(TEST) $(SHARED_LIB) $(DEPS) *.so
 
 # Rebuild target: clean then all
 re: clean all

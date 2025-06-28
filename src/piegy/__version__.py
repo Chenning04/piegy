@@ -1,4 +1,4 @@
-__version__ = '2.1.10'
+__version__ = '2.1.11'
 
 '''
 version history:
@@ -31,4 +31,5 @@ version history:
 2.1.1: fix import bug for the C core.
 2.1.2 ~ 2.1.9: updating & fixing wheel.
 2.1.10: fix print bug in run function.
+2.1.11: fix .so duplicate error.
 '''

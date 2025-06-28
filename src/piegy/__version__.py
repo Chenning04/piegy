@@ -1,4 +1,4 @@
-__version__ = '2.2.1'
+__version__ = '2.2.2'
 
 '''
 version history:
@@ -33,4 +33,5 @@ version history:
 2.1.10: fix print bug in run function.
 2.1.11: fix .so duplicate error.
 2.2.1: change heatmap plotting tool from Seaborn to Matplotlib.
+2.2.2: change video maker to cv2 (opencv-python).
 '''

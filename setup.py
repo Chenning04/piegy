@@ -55,7 +55,6 @@ class AddCompileInfo(build_py):
 
     def generate_build_info(self):
         version = self.get_version()
-        build_from = os.environ.get("BUILD_TYPE", "local machine")
         build_info_content = f'''
         """
         Contains build info, whether it's local built, or a pre-compiled wheel.
@@ -64,9 +63,8 @@ class AddCompileInfo(build_py):
 
         build_info = {{
             "version": "{version}",
-            "built from": "{build_from}",
             "build date": "{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}",
-            "python version": "{platform.python_version()}",
+            "python used": "{platform.python_version()}",
             "platform": "{sys.platform}"
         }}
         '''

@@ -25,6 +25,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from cv2 import imread, VideoWriter, VideoWriter_fourcc
 from moviepy import ImageSequenceClip
 
 
@@ -193,12 +194,20 @@ def make_mp4(video_dir, frame_dir, fps):
 
     frame_paths_incomplete = os.listdir(frame_dir)
     frame_paths_incomplete.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
-    frame_paths = []
-    for path in frame_paths_incomplete:
-        if (path[-4:] == '.png') and ('frame' in path):
-            frame_paths.append(frame_dir + '/' + path)
-    clip = ImageSequenceClip(frame_paths, fps = fps) 
-    clip.write_videofile(video_dir, logger = None)
+    frame_path = []
+    for file in frame_paths_incomplete:
+        if (file[-4:] == '.png') and ('frame' in file):
+            frame_path.append(os.path.join(frame_dir, file))
+
+    first_frame = imread(frame_path[0])
+    height, width, _ = first_frame.shape
+    fourcc = VideoWriter_fourcc(*'mp4v')
+    video_writer = VideoWriter(video_dir, fourcc, fps, (width, height))
+
+    for file in frame_path:
+            frame = imread(file)
+            video_writer.write(frame)
+    video_writer.release()
 
 
 
@@ -249,7 +258,10 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
     if os.path.exists(V_frame_dirs):
         file_t.del_dirs(V_frame_dirs)
     os.makedirs(V_frame_dirs)
+
+    figsize = (6.4, 4.8)
         
+
     #### for loop ####
     
     for i in range(frames):
@@ -257,8 +269,13 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
             print('making frames', round(i / frames * 100), '%', end = '\r')
             current_progress += one_progress
         
-        fig_U, ax_U = plt.subplots(figsize = (6.4, 4.8))#, constrained_layout = True)
-        fig_V, ax_V = plt.subplots(figsize = (6.4, 4.8))#, constrained_layout = True)
+        if ('bar' in func_name) and (mod.M > 60):
+            figsize = (min(mod.M * 0.12, 7.2), 4.8)
+            fig_U, ax_U = plt.subplots(figsize = figsize)
+            fig_V, ax_V = plt.subplots(figsize = figsize)
+        else:
+            fig_U, ax_U = plt.subplots(figsize = figsize)#, constrained_layout = True)
+            fig_V, ax_V = plt.subplots(figsize = figsize)#, constrained_layout = True)
 
         if 'hmap' in func_name:
             func(mod, ax_U = ax_U, ax_V = ax_V, U_color = U_color, V_color = V_color, start = i / frames, end = (i + 1) / frames, vrange_U = U_clim, vrange_V = V_clim)

@@ -70,16 +70,16 @@ def bar(data, ax = None, color = "green", xlabel = None, ylabel = None, title = 
         ax:     matplotlib axes with barplot made upon.
     '''
 
-    N = np.array(data).size
-    xaxis = np.array([i for i in range(N)])
+    NM = np.array(data).shape[0]
+    xaxis = np.array([i for i in range(NM)])
     
     if ax == None:
-        if N > 60:
+        if NM > 60:
             # make figure larger if has more data points
-            _, ax = plt.subplots(figsize = (min(N * 0.107, 6.4), 4.8))
+            _, ax = plt.subplots(figsize = (min(NM * 0.12, 7.2), 4.8))
         else:
             _, ax = plt.subplots()
-
+    
     if text != None:
         ax.text(0.7, 1.025, text, size = 10, linespacing = 1.5, transform = ax.transAxes)
 

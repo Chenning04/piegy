@@ -4,9 +4,9 @@ Auto-generated at compile time.
 """
 
 build_info = {
-    "version": "2.1.10",
+    "version": "2.1.11",
     "built from": "local machine",
-    "build date": "2025-06-28 04:12:23",
+    "build date": "2025-06-28 04:36:00",
     "python version": "3.11.10",
     "platform": "darwin"
 }

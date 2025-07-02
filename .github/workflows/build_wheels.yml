@@ -1,0 +1,77 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_wheels:
+    runs-on: ${{ matrix.os }} 
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Debug matrix
+        run: |
+          echo "OS = ${{ matrix.os }}"
+          echo "Python = ${{ matrix.python-version }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
+
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        
+      - name: Organize wheels for upload
+        shell: bash
+        run: |
+          mkdir -p uploads
+          for whl in wheelhouse/*.whl; do
+            fname=$(basename "$whl")
+            cp "$whl" "uploads/"
+          done
+
+      - name: Upload wheels individually
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-py${{ matrix.python-version }}-wheels
+          path: uploads/
+
+  collect_wheels:
+    name: Combine all wheels
+    runs-on: macos-latest
+    needs: build_wheels
+
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: combined_wheels
+
+      - name: List downloaded files
+        run: find combined_wheels
+
+      - name: Repackage all wheels into a single folder
+        shell: bash
+        run: |
+          mkdir -p final_wheelhouse
+          find combined_wheels -name "*.whl" -print0 | xargs -0 -I{} cp {} final_wheelhouse
+
+      - name: Upload all wheels together
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-wheels
+          path: final_wheelhouse
+
+          

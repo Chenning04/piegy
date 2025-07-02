@@ -1,0 +1,23 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints
+
+# Build directories
+build/
+dist/
+*.egg-info/
+
+# C executables
+*.d
+*.o
+*.so
+runner
+
+# wheels
+wheels/
+
+# others
+.DS_Store

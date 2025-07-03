@@ -491,19 +491,19 @@ def UV_pi(mod, ax_U = None, ax_V = None, U_color = 'violet', V_color = 'yellowgr
 
 
 
-def video_fig(mod, ax_list = None, num_itv = 100, U_color = 'Purples', V_color = 'Greens'):
+def video_fig(mod, ax_list = None, num_grid = 100, U_color = 'Purples', V_color = 'Greens'):
     '''
     Plot distribution dynamics over time, of U, V population and payoff.
 
     mod: simulation.model object
     ax_list: a 2*2 list of ax, or None (a new 2*2 ax_list will be created)
-    num_itv: how many time intervals to plot
+    num_grid: how many grid for the time axis
     U_color & V_color: matplotlib color map, color for U, V population and payoff.
     '''
 
-    if num_itv > mod.max_record:
-        raise ValueError('num_itv too large, larger than mod.max_record')
-    idx_step = int(mod.max_record / num_itv)
+    if num_grid > mod.max_record:
+        raise ValueError('num_grid too large, larger than mod.max_record')
+    idx_step = int(mod.max_record / num_grid)
     ave_U = []
     ave_V = []
     ave_Upi = []
@@ -525,7 +525,7 @@ def video_fig(mod, ax_list = None, num_itv = 100, U_color = 'Purples', V_color =
             ax_list[i, j].spines['right'].set_visible(False)
             ax_list[i, j].set_xlabel('Patches')
             ax_list[i, j].set_ylabel('Time')
-            ax_list[i, j].set_xlim([0, mod.M - 1])
+            ax_list[i, j].set_xlim([0, mod.M])
             ax_list[i, j].set_ylim([0, mod.maxtime])
     
 

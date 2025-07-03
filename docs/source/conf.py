@@ -9,7 +9,7 @@
 project = 'piegy'
 copyright = '2025, piegy Authors'
 author = 'piegy Authors'
-version = '2.3.1'
+version = '2.3.2'
 release = 'v' + version
 
 # -- General configuration ---------------------------------------------------

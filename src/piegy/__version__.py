@@ -1,4 +1,4 @@
-__version__ = '2.3.1'
+__version__ = '2.3.2'
 
 '''
 version history:
@@ -37,4 +37,6 @@ version history:
 2.2.3: raised rate calculation to higher accuracy (long double), and switched to 30-bit random number generator.
 2.3.1: roll back accuracy update. Decrease toleratable bound for exponent of exp() to 500. 
         Add video_fig function to figures module, which plots change of patch popu/payoff overtime in a 2D figure. Add auto-sorting for values passed to test_var plot functions.
+2.3.2: allow play-with-self in payoff calculation. Changed migration function to e^(w*pi) (removed "1+" term).
+        Simplified update-migration functions, improve speed by ~10%. Add -march=native flag to Makefile.
 '''

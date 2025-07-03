@@ -128,7 +128,7 @@ static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices
     ij = 0;
     for (size_t i = 0; i < N; i++) {
         for (size_t j = 0; j < M; j++) {
-            uint8_t mig_result = update_mig_all(&world[ij], &(mod->P[ij * 6]));  // init mig rates for all 4 directions
+            uint8_t mig_result = init_mig(&world[ij], &(mod->P[ij * 6]));  // init mig rates for all 4 directions
             if (mig_result == SIM_OVERFLOW) {
                 return -1 * SIM_OVERFLOW;
             }
@@ -157,7 +157,7 @@ static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices
 
     // update patch based on signal
     change_popu(&world[sig_p->ij1], sig_p->e1);
-    if (!sig_p->only_first) {
+    if (sig_p->rela_loc != NO_MIG) {
         change_popu(&world[sig_p->ij2], sig_p->e2);
     }
 
@@ -300,21 +300,15 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
         size_t si2 = signal.i2;
         size_t sij1 = signal.ij1;
         size_t sij2 = signal.ij2;
-        bool only_first = signal.only_first;
-        if (only_first) {
+        uint8_t rela_loc = signal.rela_loc;
+        if (rela_loc == NO_MIG) {
             // if only one
             double picked_rate = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
             sum_rates_by_row[si1] -= picked_rate;
             sum_rates -= picked_rate;
 
             update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));
-            uint8_t mig_result = update_mig_all(&world[sij1], &(mod->P[sij1 * 6]));
-            if (mig_result == SIM_OVERFLOW) {
-                fprintf(stdout, "\nError: overflow at t = %f\n", time);
-                fflush(stdout);
-                single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
-                return SIM_OVERFLOW;
-            }
+            update_mig_just_rate(&world[sij1], &(mod->P[sij1 * 6]));
 
             picked_rate = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
             patch_rates[sij1] = picked_rate;
@@ -331,9 +325,10 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
 
             update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));  // update both patches' payoffs first
             update_pi_k(&world[sij2], &(mod->X[sij2 * 4]), &(mod->P[sij2 * 6]));
-            uint8_t mig_result1 = update_mig_all(&world[sij1], &(mod->P[sij1 * 6]));   // and then mig rates
-            uint8_t mig_result2 = update_mig_all(&world[sij2], &(mod->P[sij2 * 6]));
-            if (mig_result1 == SIM_OVERFLOW || mig_result2 == SIM_OVERFLOW) {
+
+            if (update_mig_weight_rate(&world[sij1], &(mod->P[sij1 * 6]), rela_loc) == SIM_OVERFLOW || 
+                update_mig_weight_rate(&world[sij2], &(mod->P[sij2 * 6]), rela_loc ^ 1) == SIM_OVERFLOW) {
+
                 fprintf(stdout, "\nError: overflow at t = %f\n", time);
                 fflush(stdout);
                 single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -352,19 +347,18 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
         }
 
         // update neighbors of last-changed patches
-        if (only_first) {
+        if (rela_loc == NO_MIG) {
             for (uint8_t k = 0; k < 4; k++) {
                 size_t nb_idx = nb_indices[sij1 * 4 + k];
                 if (nb_idx == NM) { continue; }  // invalid neighbor
                 // all neighbors, as long as exists, need to change
-                uint8_t mig_result = update_mig_one(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1);
-                if (mig_result == SIM_OVERFLOW) {
+                if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                     fprintf(stdout, "\nError: overflow at t = %f\n", time);
                     fflush(stdout);
                     single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
                     return SIM_OVERFLOW;
                 }
-                // sum_mig_rate is not changed
+                // patch_rates, and sums of rates is not changed
             }
         } else {
             // the first patch
@@ -372,8 +366,7 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
                 size_t nb_idx = nb_indices[sij1 * 4 + k];
                 if (nb_idx == NM) { continue; }
                 if (nb_need_change(nb_idx, sij1, sij2)) {
-                    uint8_t mig_result = update_mig_one(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1);
-                    if (mig_result == SIM_OVERFLOW) {
+                    if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
                         single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -386,8 +379,7 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
                 size_t nb_idx = nb_indices[sij2 * 4 + k];
                 if (nb_idx == NM) { continue; }
                 if (nb_need_change(nb_idx, sij1, sij2)) {
-                    uint8_t mig_result = update_mig_one(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1);
-                    if (mig_result == SIM_OVERFLOW) {
+                    if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
                         single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -415,7 +407,7 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
 
         // let the event happenn
         change_popu(&world[signal.ij1], signal.e1);
-        if (!signal.only_first) {
+        if (signal.rela_loc != NO_MIG) {
             change_popu(&world[signal.ij2], signal.e2);
         }
 

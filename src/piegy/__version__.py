@@ -1,4 +1,4 @@
-__version__ = '2.3.2'
+__version__ = '2.3.3'
 
 '''
 version history:
@@ -39,4 +39,5 @@ version history:
         Add video_fig function to figures module, which plots change of patch popu/payoff overtime in a 2D figure. Add auto-sorting for values passed to test_var plot functions.
 2.3.2: allow play-with-self in payoff calculation. Changed migration function to e^(w*pi) (removed "1+" term).
         Simplified update-migration functions, improve speed by ~10%. Add -march=native flag to Makefile.
+2.3.3: fix error in calculation of migration rates.
 '''

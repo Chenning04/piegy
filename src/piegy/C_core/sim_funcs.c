@@ -303,25 +303,21 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
         uint8_t rela_loc = signal.rela_loc;
         if (rela_loc == NO_MIG) {
             // if only one
-            double picked_rate = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
-            sum_rates_by_row[si1] -= picked_rate;
-            sum_rates -= picked_rate;
+            sum_rates_by_row[si1] -= patch_rates[sij1];
+            sum_rates -= patch_rates[sij1];
 
             update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));
-            update_mig_just_rate(&world[sij1], &(mod->P[sij1 * 6]));
+            init_mig(&world[sij1], &(mod->P[sij1 * 6]));
 
-            picked_rate = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
-            patch_rates[sij1] = picked_rate;
-            sum_rates_by_row[si1] += picked_rate;
-            sum_rates += picked_rate;
+            patch_rates[sij1] = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
+            sum_rates_by_row[si1] += patch_rates[sij1];
+            sum_rates += patch_rates[sij1];
         } else {
             // two
-            double picked_rate1 = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
-            double picked_rate2 = world[sij2].sum_pi_death_rates + world[sij2].sum_mig_rates;
-            sum_rates_by_row[si1] -= picked_rate1;
-            sum_rates_by_row[si2] -= picked_rate2;
-            sum_rates -= picked_rate1;
-            sum_rates -= picked_rate2;
+            sum_rates_by_row[si1] -= patch_rates[sij1];
+            sum_rates_by_row[si2] -= patch_rates[sij2];
+            sum_rates -= patch_rates[sij1];
+            sum_rates -= patch_rates[sij2];
 
             update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));  // update both patches' payoffs first
             update_pi_k(&world[sij2], &(mod->X[sij2 * 4]), &(mod->P[sij2 * 6]));
@@ -335,15 +331,12 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
                 return SIM_OVERFLOW;
             }
 
-            picked_rate1 = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
-            picked_rate2 = world[sij2].sum_pi_death_rates + world[sij2].sum_mig_rates;
-
-            patch_rates[sij1] = picked_rate1;
-            patch_rates[sij2] = picked_rate2;
-            sum_rates_by_row[si1] += picked_rate1;
-            sum_rates_by_row[si2] += picked_rate2;
-            sum_rates += picked_rate1;
-            sum_rates += picked_rate2;
+            patch_rates[sij1] = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
+            patch_rates[sij2] = world[sij2].sum_pi_death_rates + world[sij2].sum_mig_rates;
+            sum_rates_by_row[si1] += patch_rates[sij1];
+            sum_rates_by_row[si2] += patch_rates[sij2];
+            sum_rates += patch_rates[sij1];
+            sum_rates += patch_rates[sij2];
         }
 
         // update neighbors of last-changed patches

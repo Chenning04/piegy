@@ -36,7 +36,7 @@
 #define SMALL_MAXTIME 2
 #define SIM_OVERFLOW 3
 
-// where exp(x) is considered overflow
+// where 1 + exp(x) is considered overflow
 // below the actual bound (709) because the large numbers will be computed with close-to-0 ones (payoff rates), so higher accuracy is needed
 #define EXP_OVERFLOW_BOUND 500
 
@@ -116,19 +116,19 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
 
     double U = (double) p->U;
     double V = (double) p->V;
-    double sum = U + V;
+    double sum = U + V - 1;
+    //double U_ratio = U / sum;
+    //double V_ratio = V / sum;
 
     if (sum > 0) {
-        if (U != 0) {
-            p->U_pi = (U / sum) * M_start[0] +
-                      (V / sum) * M_start[1];
+        if (U > 0) {
+            p->U_pi = (U - 1) / sum * M_start[0] + V / sum * M_start[1];
         } else {
             p->U_pi = 0.0;
         }
 
-        if (V != 0) {
-            p->V_pi = (U / sum) * M_start[2] +
-                      (V / sum) * M_start[3];
+        if (V > 0) {
+            p->V_pi = U / sum * M_start[2] + (V - 1) / sum * M_start[3];
         } else {
             p->V_pi = 0.0;
         }
@@ -141,8 +141,8 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
     p->pi_death_rates[0] = fabs(U * p->U_pi);
     p->pi_death_rates[1] = fabs(V * p->V_pi);
 
-    p->pi_death_rates[2] = P_start[4] * U * sum;
-    p->pi_death_rates[3] = P_start[5] * V * sum;
+    p->pi_death_rates[2] = P_start[4] * U * (sum + 1);
+    p->pi_death_rates[3] = P_start[5] * V * (sum + 1);
 
     p->sum_pi_death_rates = 0.0;
     for (size_t i = 0; i < 4; i++) {
@@ -154,12 +154,14 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
 
 static inline void update_mig_just_rate(patch_t* restrict p, const double* restrict P_start) {
     // update migration weight for patch p, in location loc. Only rate is updated
-    // used by neighbors of last-changed patches, to update migration weights
+    // used by last-changed patch, when there is only one last-changed patch
     double* p_U_weight = p->U_weight;
     double* p_V_weight = p->V_weight;
 
     double mu1_U = P_start[0] * (double)p->U;
     double mu2_V = P_start[1] * (double)p->V;
+    p->sum_mig_rates = mu1_U + mu2_V;
+    
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
@@ -167,14 +169,13 @@ static inline void update_mig_just_rate(patch_t* restrict p, const double* restr
         p->mig_rates[i] = mu1_U_divide_sum * p_U_weight[i];
         p->mig_rates[i + 4] = mu2_V_divide_sum * p_V_weight[i];
     }
-    p->sum_mig_rates = mu1_U + mu2_V;
 }
 
 
 static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* P_start, uint8_t loc) {
     // update migration weight as well as rates, in one direction
     // used by neighbors of last-changed patches
-    // also used by last-changed patches themselve, when there is only one patch changed, to update mig rates without having to update weights
+    // also used by last-changed patches themselve, when there are two patch changed, to update mig rates of in each other's direction
 
     double* p_U_weight = p->U_weight;
     double* p_V_weight = p->V_weight;
@@ -194,20 +195,20 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* 
 
     switch(loc) {
         case MIG_UP:
-            p_U_weight[MIG_UP] = exp(w1_Upi);
-            p_V_weight[MIG_UP] = exp(w2_Vpi);
+            p_U_weight[MIG_UP] = 1 + exp(w1_Upi);
+            p_V_weight[MIG_UP] = 1 + exp(w2_Vpi);
             break;
         case MIG_DOWN:
-            p_U_weight[MIG_DOWN] = exp(w1_Upi);
-            p_V_weight[MIG_DOWN] = exp(w2_Vpi);
+            p_U_weight[MIG_DOWN] = 1 + exp(w1_Upi);
+            p_V_weight[MIG_DOWN] = 1 + exp(w2_Vpi);
             break;
         case MIG_LEFT:
-            p_U_weight[MIG_LEFT] = exp(w1_Upi);
-            p_V_weight[MIG_LEFT] = exp(w2_Vpi);
+            p_U_weight[MIG_LEFT] = 1 + exp(w1_Upi);
+            p_V_weight[MIG_LEFT] = 1 + exp(w2_Vpi);
             break;
         default:
-            p_U_weight[MIG_RIGHT] = exp(w1_Upi);
-            p_V_weight[MIG_RIGHT] = exp(w2_Vpi);
+            p_U_weight[MIG_RIGHT] = 1 + exp(w1_Upi);
+            p_V_weight[MIG_RIGHT] = 1 + exp(w2_Vpi);
             break;
     }
     p->sum_U_weight += p_U_weight[loc];
@@ -254,8 +255,8 @@ static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_sta
             if (w2_Vpi > EXP_OVERFLOW_BOUND) {
                 return SIM_OVERFLOW;
             }
-            p_U_weight[i] = exp(w1_Upi);
-            p_V_weight[i] = exp(w2_Vpi);
+            p_U_weight[i] = 1 + exp(w1_Upi);
+            p_V_weight[i] = 1 + exp(w2_Vpi);
 
             p->sum_U_weight += p_U_weight[i];
             p->sum_V_weight += p_V_weight[i];
@@ -321,7 +322,7 @@ static inline void change_popu(patch_t* restrict p, uint8_t s) {
             return;
         case 2:
             // Natural birth/death for U due to payoff
-            if (p->U_pi > 0.0) {
+            if (p->U_pi > 0) {
                 p->U += 1;
             } else if (p->U > 0) {
                 p->U -= 1;
@@ -337,7 +338,7 @@ static inline void change_popu(patch_t* restrict p, uint8_t s) {
             return;
         default:
             // Natural birth/death for V due to payoff
-            if (p->V_pi > 0.0) {
+            if (p->V_pi > 0) {
                 p->V += 1;
             } else if (p->V > 0) {
                 p->V -= 1;

@@ -25,11 +25,7 @@ from numpy.ctypeslib import ndpointer
 # check whether overflow / too large values might be encountered
 # these values are considered as exponents in exp()
 EXP_OVERFLOW_BOUND = 709  # where exp(x) almost reaches overflow bound
-EXP_TOO_LARGE_BOUND = 88  # where exp(x) reaches 1e20
-
-# how frequent to update sum in simulation, i.e., accuracy
-# the defuault value is 64, increase to 4 times if encounter error 
-UPDATE_SUM_FREQ = 64
+EXP_TOO_LARGE_BOUND = 88  # where exp(x) reaches 1e34
 
 
 # read the C core into LIB
@@ -101,7 +97,7 @@ def read_lib():
     LIB.mod_free_py.argtypes = [ctypes.POINTER(model_c)]
     LIB.mod_free_py.restype = None
 
-    LIB.run.argtypes = [ctypes.POINTER(model_c), ctypes.POINTER(c_char), c_size_t, c_uint32]
+    LIB.run.argtypes = [ctypes.POINTER(model_c), ctypes.POINTER(c_char), c_size_t]
     LIB.run.restype = c_ubyte  # which is uint8
 
 
@@ -410,7 +406,7 @@ class model:
 
 
 
-def run(mod, message = "", update_sum_freq = UPDATE_SUM_FREQ):
+def run(mod, message = ""):
     '''
     C-cored simulation
     '''
@@ -437,7 +433,7 @@ def run(mod, message = "", update_sum_freq = UPDATE_SUM_FREQ):
         del mod_c
         raise RuntimeError('Model initialization failed')
     
-    result = LIB.run(ctypes.byref(mod_c), msg_buffer, msg_len, update_sum_freq)
+    result = LIB.run(ctypes.byref(mod_c), msg_buffer, msg_len)
 
     if result == SIM_SUCCESS:
         mod.set_data(False, mod.max_record, 1, mod_c.get_array('U1d').reshape(mod.N, mod.M, mod.max_record), 

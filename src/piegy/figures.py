@@ -530,19 +530,19 @@ def video_fig(mod, ax_list = None, num_grid = 100, U_color = 'Purples', V_color 
     
 
     im = ax_list[0, 0].imshow(ave_U, cmap = U_color)
-    ax_list[0, 0].get_figure().colorbar(im, ax = ax_list[0, 0])
+    ax_list[0, 0].get_figure().colorbar(im, ax = ax_list[0, 0], extent = [0, mod.N * mod.M, 0, mod.maxtime], origin='lower', aspect = 'auto')
     ax_list[0, 0].set_title('Population U over time')
         
     im = ax_list[0, 1].imshow(ave_V, cmap = V_color)
-    ax_list[0, 1].get_figure().colorbar(im, ax = ax_list[0, 1])
+    ax_list[0, 1].get_figure().colorbar(im, ax = ax_list[0, 1], extent = [0, mod.N * mod.M, 0, mod.maxtime], origin='lower', aspect = 'auto')
     ax_list[0, 1].set_title('Population V over time')
 
     im = ax_list[1, 0].imshow(ave_Upi, cmap = U_color)
-    ax_list[1, 0].get_figure().colorbar(im, ax = ax_list[1, 0])
+    ax_list[1, 0].get_figure().colorbar(im, ax = ax_list[1, 0], extent = [0, mod.N * mod.M, 0, mod.maxtime], origin='lower', aspect = 'auto')
     ax_list[1, 0].set_title('Payoff ' + r'$p_H$' + ' over time')
 
     im = ax_list[1, 1].imshow(ave_Vpi, cmap = V_color)
-    ax_list[1, 1].get_figure().colorbar(im, ax = ax_list[1, 1])
+    ax_list[1, 1].get_figure().colorbar(im, ax = ax_list[1, 1], extent = [0, mod.N * mod.M, 0, mod.maxtime], origin='lower', aspect = 'auto')
     ax_list[1, 1].set_title('Payoff ' + r'$p_D$' + ' over time')
 
     return ax_list

@@ -11,11 +11,11 @@
 int main() {
     size_t N = 1;
     size_t M = 100;
-    double maxtime = 600;
+    double maxtime = 300;
     double record_itv = 0.1;
     size_t sim_time = 1;
     bool boundary = true;
-    uint32_t I_single[2] = {440, 220};
+    uint32_t I_single[2] = {3, 3};
     double X_single[4] = {-1, 4, 0, 2};
     double P_single[6] = {0.5, 0.5, 100, 100, 0.001, 0.001};
     int32_t print_pct = 1;
@@ -46,8 +46,7 @@ int main() {
     mod_init(mod, N, M, maxtime, record_itv, sim_time, boundary, I, X, P, print_pct, seed);
 
     char message[20] = "";  // writable buffer with enough space
-    uint32_t update_sum_freq = 64;
-    uint8_t result = run(mod, message, 20, update_sum_freq);
+    uint8_t result = run(mod, message, 20);
     
     /*for (size_t i = 0; i < mod->max_record; i++) {
         fprintf(stdout, "%f ", mod->U1d[i]);

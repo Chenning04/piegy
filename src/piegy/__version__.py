@@ -41,4 +41,5 @@ version history:
         Simplified update-migration functions, improve speed by ~10%. Add -march=native flag to Makefile.
 2.3.3: fix error in calculation of migration rates.
 2.3.4: change back to the mig & payoff rules in version 2.3.2
+2.3.5: improved accuracy for simulation, now can better handle large mig rates. Numerical errors are now being checked and reduced automatically based on how large the values are.
 '''

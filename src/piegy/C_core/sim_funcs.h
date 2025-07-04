@@ -39,6 +39,11 @@
 // where exp(x) is considered overflow
 // below the actual bound (709) because the large numbers will be computed with close-to-0 ones (payoff rates), so higher accuracy is needed
 #define EXP_OVERFLOW_BOUND 500
+#define ACCURATE_BOUND 10000000000LL
+
+// how frequent to update rates & sum of rates in single test (recalculate)
+#define UPDATE_SUM_FREQ_SM 100
+#define UPDATE_SUM_FREQ_LG 10000
 
 
 static uint64_t pcg_state = 0;
@@ -87,9 +92,9 @@ static void find_nb_zero_flux(size_t* restrict nb, size_t i, size_t j, size_t N,
 static void find_nb_periodical(size_t* restrict nb, size_t i, size_t j, size_t N, size_t M, size_t NM);
 static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices, 
                     double* patch_rates, double* sum_rates_by_row, double* sum_rates, signal_t* sig_p, patch_picked_t* picked_p) ;
-static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_frequency, char* message);
+static uint8_t single_test(model_t* restrict mod, char* message);
 static void single_test_free(patch_t** world, size_t** nb_indices, double** patch_rates, double** sum_rates_by_row);
-uint8_t run(model_t* mod, char* message, size_t msg_len, uint32_t update_sum_freq);
+uint8_t run(model_t* mod, char* message, size_t msg_len);
 
 
 
@@ -153,7 +158,6 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
 
 
 static inline void update_mig_just_rate(patch_t* restrict p, const double* restrict P_start) {
-    // BUGGY - not using
     // update migration weight for patch p, in location loc. Only rate is updated
     // used by last-changed patch, when there is only one last-changed patch
     double* p_U_weight = p->U_weight;
@@ -161,7 +165,6 @@ static inline void update_mig_just_rate(patch_t* restrict p, const double* restr
 
     double mu1_U = P_start[0] * (double)p->U;
     double mu2_V = P_start[1] * (double)p->V;
-    p->sum_mig_rates = mu1_U + mu2_V;
     
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
@@ -170,6 +173,7 @@ static inline void update_mig_just_rate(patch_t* restrict p, const double* restr
         p->mig_rates[i] = mu1_U_divide_sum * p_U_weight[i];
         p->mig_rates[i + 4] = mu2_V_divide_sum * p_V_weight[i];
     }
+    p->sum_mig_rates = mu1_U + mu2_V;
 }
 
 
@@ -245,7 +249,6 @@ static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_sta
 
     for (uint8_t i = 0; i < 4; i++) {
         patch_t* nbi = p->nb[i];
-
         if (nbi) {
             // not NULL
             double w1_Upi = w1 * nbi->U_pi;
@@ -263,7 +266,6 @@ static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_sta
             p->sum_V_weight += p_V_weight[i];
         }
     }
-
 
     double mu1_U = P_start[0] * (double)p->U;
     double mu2_V = P_start[1] * (double)p->V;
@@ -580,18 +582,6 @@ static inline void make_signal_periodical(size_t N, size_t M, size_t i, size_t j
         //    fprintf(stderr, "Bug: invalid case in make_signal_pr, i, j, e: %zu, %zu, %hhu\n", i, j, e);
         //    return;
     }
-}
-
-
-static inline bool nb_need_change(size_t nb_idx, size_t sij1, size_t sij2) {
-    // a nb doesn't need change only if two patches are updated
-
-    // or, can try this 1-line version
-    // return (nb_idx != sij1) && (nb_idx != sij2);
-    if ((nb_idx == sij1) || (nb_idx == sij2)) {
-        return false;
-    }
-    return true;  // need to change
 }
 
 

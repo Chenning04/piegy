@@ -191,7 +191,7 @@ static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices
 
 
 
-static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char* message) {
+static uint8_t single_test(model_t* restrict mod, char* message) {
     // bring some dimensions to the front
     size_t N = mod->N;
     size_t M = mod->M;
@@ -201,9 +201,9 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
     double record_itv = mod->record_itv;
     bool boundary = mod->boundary;
 
-    double one_time = maxtime / (double)(update_sum_freq > 100 ? update_sum_freq : 100);
+    // print progress
     double one_progress = 0.0;
-    
+    double current_progress = one_progress;
     if (mod->print_pct != -1) {
         one_progress = maxtime * mod->print_pct / 100.0;
         fprintf(stdout, "\r                     ");
@@ -213,11 +213,11 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
         one_progress = 2.0 * maxtime;
     }
 
-    double one_update_sum = maxtime / (double) (update_sum_freq + 1);
-
-    double current_time = one_time;
-    double current_progress = one_progress;
-    double current_update_sum = one_update_sum;
+    // update sum of rates every 1e5 rounds
+    // many rates are updated each time, rather than re-calculated. 
+    // So need to re-calculate from scratch every some time to reduce numerical errors
+    size_t curr_update_sum_round = 0;  // current round
+    size_t update_sum_freq = UPDATE_SUM_FREQ_SM;  // the frequency really using, change based on how large values are encountered
 
     // Initialize simulation
     patch_t* world = (patch_t*) calloc(NM, sizeof(patch_t));
@@ -249,47 +249,53 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
 
     while (time < maxtime) {
 
-        // Print progress and update sums if needed
-        if (time > current_time) {
-            current_time += one_time;
-            if (time > current_progress) {
-                uint8_t curr_prog = (uint8_t)(time * 100 / maxtime);
-                if (curr_prog < 10) {
-                    fprintf(stdout, "\r%s: %d %%", message, (int)(time * 100 / maxtime));
-                } else {
-                    fprintf(stdout, "\r%s: %d%%", message, (int)(time * 100 / maxtime));
-                }
-                fflush(stdout);
-                //fflush(stdout);  // Make sure it prints immediately
-                current_progress += one_progress;
+        // Print progress
+        if (time > current_progress) {
+            uint8_t curr_prog = (uint8_t)(time * 100 / maxtime);
+            if (curr_prog < 10) {
+                fprintf(stdout, "\r%s: %d %%", message, (int)(time * 100 / maxtime));
+            } else {
+                fprintf(stdout, "\r%s: %d%%", message, (int)(time * 100 / maxtime));
             }
-            if (time > current_update_sum) {
-                current_update_sum += one_update_sum;
+            fflush(stdout);
+            //fflush(stdout);  // Make sure it prints immediately
+            current_progress += one_progress;
+        }
+        
+        // update sums
+        curr_update_sum_round++;
+        if (curr_update_sum_round > update_sum_freq) {
+            curr_update_sum_round = 0;
+            update_sum_freq = UPDATE_SUM_FREQ_LG;  // assume can make it larger
+            size_t ij = 0;
 
-                // recalculate sum
-                size_t ij = 0;
-                for (size_t i = 0; i < N; i++) {
-                    for (size_t j = 0; j < M; j++) {
-                        world[ij].sum_U_weight = 0;
-                        world[ij].sum_V_weight = 0;
-                        for (size_t k = 0; k < 4; k++) {
-                            world[ij].sum_U_weight += world[ij].U_weight[k];
-                            world[ij].sum_V_weight += world[ij].V_weight[k];
-                        }
+            for (size_t i = 0; i < N; i++) {
+                for (size_t j = 0; j < M; j++) {
+                    double sum_U_weight = 0;
+                    double sum_V_weight = 0;
+                    for (size_t k = 0; k < 4; k++) {
+                        sum_U_weight += world[ij].U_weight[k];
+                        sum_V_weight += world[ij].V_weight[k];
                     }
-                }
-                ij = 0;
-                for (size_t i = 0; i < N; i++) {
-                    sum_rates_by_row[i] = 0;
-                    for (size_t j = 0; j < M; j++) {
-                        sum_rates_by_row[i] += patch_rates[ij];
-                        ij++;
+                    world[ij].sum_U_weight = sum_U_weight;
+                    world[ij].sum_V_weight = sum_V_weight;
+                    // patch_rates are updated every time a patch is changed
+                    if (sum_U_weight > ACCURATE_BOUND) {
+                        update_sum_freq = UPDATE_SUM_FREQ_SM;  // values too large, put back the small update frequency
                     }
+                    ij++;
                 }
-                sum_rates = 0;
-                for (size_t i = 0; i < N; i++) {
-                    sum_rates += sum_rates_by_row[i];
+            }
+            ij = 0;
+            sum_rates = 0;
+            for (size_t i = 0; i < N; i++) {
+                double sum_rates_by_row_i = 0;
+                for (size_t j = 0; j < M; j++) {
+                    sum_rates_by_row_i += patch_rates[ij];
+                    ij++;
                 }
+                sum_rates_by_row[i] = sum_rates_by_row_i;
+                sum_rates += sum_rates_by_row_i;
             }
         }
 
@@ -307,7 +313,7 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
             sum_rates -= patch_rates[sij1];
 
             update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));
-            init_mig(&world[sij1], &(mod->P[sij1 * 6]));
+            update_mig_just_rate(&world[sij1], &(mod->P[sij1 * 6]));
 
             patch_rates[sij1] = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
             sum_rates_by_row[si1] += patch_rates[sij1];
@@ -358,7 +364,8 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
             for (uint8_t k = 0; k < 4; k++) {
                 size_t nb_idx = nb_indices[sij1 * 4 + k];
                 if (nb_idx == NM) { continue; }
-                if (nb_need_change(nb_idx, sij1, sij2)) {
+                if (k != rela_loc) {
+                    // nb_idx isn't the second last-changed patch
                     if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
@@ -371,7 +378,8 @@ static uint8_t single_test(model_t* restrict mod, uint32_t update_sum_freq, char
             for (uint8_t k = 0; k < 4; k++) {
                 size_t nb_idx = nb_indices[sij2 * 4 + k];
                 if (nb_idx == NM) { continue; }
-                if (nb_need_change(nb_idx, sij1, sij2)) {
+                if (k != (rela_loc ^ 1)) {
+                    // nb_idx isn't the first last-changed patch
                     if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
@@ -475,7 +483,7 @@ static void single_test_free(patch_t** world, size_t** nb_indices, double** patc
 
 
 
-uint8_t run(model_t* mod, char* message, size_t msg_len, uint32_t update_sum_freq) {
+uint8_t run(model_t* mod, char* message, size_t msg_len) {
     if (!mod->data_empty) {
         // this won't happen if called from python, the ``simulation.run`` caller has checked it.
         fprintf(stdout, "Error: mod has non-empty data\n");
@@ -518,7 +526,7 @@ uint8_t run(model_t* mod, char* message, size_t msg_len, uint32_t update_sum_fre
             snprintf(end_info, sizeof(end_info), ", ~%.2fs left", pred_runtime);
         }*/
 
-        uint8_t result = single_test(mod, update_sum_freq, curr_msg);
+        uint8_t result = single_test(mod, curr_msg);
         
         switch (result) {
             case SUCCESS:

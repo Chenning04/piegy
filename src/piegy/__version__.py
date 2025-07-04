@@ -1,4 +1,4 @@
-__version__ = '2.3.3'
+__version__ = '2.3.4'
 
 '''
 version history:
@@ -40,4 +40,5 @@ version history:
 2.3.2: allow play-with-self in payoff calculation. Changed migration function to e^(w*pi) (removed "1+" term).
         Simplified update-migration functions, improve speed by ~10%. Add -march=native flag to Makefile.
 2.3.3: fix error in calculation of migration rates.
+2.3.4: change back to the mig & payoff rules in version 2.3.2
 '''

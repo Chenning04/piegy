@@ -17,7 +17,7 @@ int main() {
     bool boundary = true;
     uint32_t I_single[2] = {3, 3};
     double X_single[4] = {-1, 4, 0, 2};
-    double P_single[6] = {0.5, 0.5, 100, 100, 0.001, 0.001};
+    double P_single[6] = {0.5, 0.5, 80, 80, 0.001, 0.001};
     int32_t print_pct = 1;
     int32_t seed = 36;  // -1 for None
 

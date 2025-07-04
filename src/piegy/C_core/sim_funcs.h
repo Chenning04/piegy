@@ -35,15 +35,16 @@
 #define DATA_NOT_EMPTY 1
 #define SMALL_MAXTIME 2
 #define SIM_OVERFLOW 3
+#define ACCURACY_ERROR 4
 
 // where exp(x) is considered overflow
-// below the actual bound (709) because the large numbers will be computed with close-to-0 ones (payoff rates), so higher accuracy is needed
+// below the actual bound (709) to preserve accuracy
 #define EXP_OVERFLOW_BOUND 500
 #define ACCURATE_BOUND 10000000000LL
 
 // how frequent to update rates & sum of rates in single test (recalculate)
-#define UPDATE_SUM_FREQ_SM 100
-#define UPDATE_SUM_FREQ_LG 10000
+#define UPDATE_SUM_ROUNDS_SM 100
+#define UPDATE_SUM_ROUNDS_LG 10000
 
 
 static uint64_t pcg_state = 0;
@@ -90,11 +91,12 @@ typedef struct signal_t {
 */
 static void find_nb_zero_flux(size_t* restrict nb, size_t i, size_t j, size_t N, size_t M, size_t NM);
 static void find_nb_periodical(size_t* restrict nb, size_t i, size_t j, size_t N, size_t M, size_t NM);
-static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices, 
-                    double* patch_rates, double* sum_rates_by_row, double* sum_rates, signal_t* sig_p, patch_picked_t* picked_p) ;
+static double single_init(const model_t* restrict mod, patch_t* restrict world, size_t* restrict nb_indices, 
+                    double* restrict patch_rates, double* restrict sum_rates_by_row, double* restrict sum_rates_p, 
+                    signal_t* restrict sig_p, patch_picked_t* restrict picked_p);
 static uint8_t single_test(model_t* restrict mod, char* message);
 static void single_test_free(patch_t** world, size_t** nb_indices, double** patch_rates, double** sum_rates_by_row);
-uint8_t run(model_t* mod, char* message, size_t msg_len);
+uint8_t run(model_t* restrict mod, char* message, size_t msg_len);
 
 
 

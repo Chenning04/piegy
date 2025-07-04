@@ -1,4 +1,4 @@
-__version__ = '2.3.4'
+__version__ = '2.3.6'
 
 '''
 version history:
@@ -42,4 +42,5 @@ version history:
 2.3.3: fix error in calculation of migration rates.
 2.3.4: change back to the mig & payoff rules in version 2.3.2
 2.3.5: improved accuracy for simulation, now can better handle large mig rates. Numerical errors are now being checked and reduced automatically based on how large the values are.
+2.3.6: index error due to reduced accuracy is now explicitly handled.
 '''

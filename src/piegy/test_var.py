@@ -92,8 +92,8 @@ def test_var1(mod, var, values, dirs, compress_itv = None):
             if compress_itv != None:
                 sim2.compress_data(compress_itv)
             data_t.save_data(sim2, var_dirs[k], print_msg = False)
-        except OverflowError:
-            print(current_var_str + ' raised OverflowError, skipped')
+        except (OverflowError, RuntimeError):
+            print(current_var_str + ' raised error, skipped')
             continue
 
     return var_dirs
@@ -139,8 +139,8 @@ def test_var2(mod, var1, var2, values1, values2, dirs, compress_itv = None):
                 if compress_itv != None:
                     sim2.compress_data(compress_itv)
                 data_t.save_data(sim2, var_dirs[k1][k2], print_msg = False)
-            except OverflowError:
-                print(current_var_str + ' raised OverflowError, skipped')
+            except (OverflowError, RuntimeError):
+                print(current_var_str + ' raised error, skipped')
                 continue
 
     return var_dirs

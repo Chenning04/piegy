@@ -4,7 +4,6 @@ CC = gcc
 #### Common Flags ####
 
 ## Flags for Max Speed ##
-# standard
 CFLAGS_COMMON = -O3 -march=native -flto -std=c99 -DNDEBUG -ffp-contract=fast -funroll-loops -fomit-frame-pointer -MMD -MP
 LDFLAGS_COMMON = -flto
 

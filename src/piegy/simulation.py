@@ -25,7 +25,7 @@ from numpy.ctypeslib import ndpointer
 # check whether overflow / too large values might be encountered
 # these values are considered as exponents in exp()
 EXP_OVERFLOW_BOUND = 709  # where exp(x) almost reaches overflow bound
-EXP_TOO_LARGE_BOUND = 88  # where exp(x) reaches 1e34
+EXP_TOO_LARGE_BOUND = 30  # where exp(x) reaches ~10e13 and accuracy goes below 10^-3 (10^-3 isn't accurate any more)
 
 
 # read the C core into LIB
@@ -36,6 +36,7 @@ SIM_SUCCESS = 0
 SIM_DATA_EMPTY = 1
 SIM_SMALL_MAXTIME = 2
 SIM_OVERFLOW = 3
+ACCURACY_ERROR = 4
 
 
 '''
@@ -449,7 +450,11 @@ def run(mod, message = ""):
     elif result == SIM_OVERFLOW:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
-        raise OverflowError('Overflow in simulation')
+        raise OverflowError('Overflow in simulation. Possibly due to too large w1, w2, or payoff matrix values.')
+    elif result == ACCURACY_ERROR:
+        LIB.mod_free_py(ctypes.byref(mod_c))
+        del mod_c
+        raise RuntimeError('Accuracy dropped catastrophically during simulation. Possibly due to too large w1, w2, or payoff matrix values.')
     else:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
@@ -524,9 +529,9 @@ def check_overflow_func(mod):
             w1_pi = pi_expected[i][j] * mod.P[i][j][2]  # w1 * U_pi
             w2_pi = pi_expected[i][j] * mod.P[i][j][3]  # w2 * V_pi
             if ((w1_pi > EXP_OVERFLOW_BOUND) or (w2_pi > EXP_OVERFLOW_BOUND)):
-                print("Warning: might cause overflow. \n\t w1, w2, or payoff matrix values too large")
+                print("Warning: might cause overflow in simulation. \n\t w1, w2, or payoff matrix values too large")
                 return
             if ((w1_pi > EXP_TOO_LARGE_BOUND) or (w2_pi > EXP_TOO_LARGE_BOUND)):
-                print("Warning: might encounter large values > 3e38 in simulation. \n\t w1, w2, or payoff matrix values too large")
+                print("Warning: might have low accuracy in simulation. \n\t w1, w2, or payoff matrix values too large")
                 return
 

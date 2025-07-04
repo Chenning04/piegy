@@ -68,8 +68,9 @@ static void find_nb_periodical(size_t* restrict nb, size_t i, size_t j, size_t N
 
 
 // single_init function: initializes world, runs 1 event, returns updated variables
-static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices, 
-                    double* patch_rates, double* sum_rates_by_row, double* sum_rates_p, signal_t* sig_p, patch_picked_t* picked_p) {
+static double single_init(const model_t* restrict mod, patch_t* restrict world, size_t* restrict nb_indices, 
+                    double* restrict patch_rates, double* restrict sum_rates_by_row, double* restrict sum_rates_p, 
+                    signal_t* restrict sig_p, patch_picked_t* restrict picked_p) {
 
     size_t N = mod->N;
     size_t M = mod->M;
@@ -145,6 +146,9 @@ static double single_init(const model_t* mod, patch_t* world, size_t* nb_indices
     find_patch(picked_p, expected_sum, patch_rates, sum_rates_by_row, *sum_rates_p, N, M);
     size_t picked_idx = picked_p->i * M + picked_p->j;
     size_t e0 = find_event(&world[picked_idx], expected_sum - picked_p->current_sum);
+    if (picked_idx >= NM || e0 >= 12) {
+        return -1 * ACCURACY_ERROR;
+    }
 
     // make signal
     if (mod->boundary) {
@@ -215,9 +219,9 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
 
     // update sum of rates every 1e5 rounds
     // many rates are updated each time, rather than re-calculated. 
-    // So need to re-calculate from scratch every some time to reduce numerical errors
+    // So need to re-calculate from scratch every some rounds to reduce numerical errors
     size_t curr_update_sum_round = 0;  // current round
-    size_t update_sum_freq = UPDATE_SUM_FREQ_SM;  // the frequency really using, change based on how large values are encountered
+    size_t update_sum_rounds = UPDATE_SUM_ROUNDS_SM;  // recalculate sum every this many rounds
 
     // Initialize simulation
     patch_t* world = (patch_t*) calloc(NM, sizeof(patch_t));
@@ -242,7 +246,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         fflush(stdout);
         single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
         return SIM_OVERFLOW;
-    }
+    } else if (time == -1 * ACCURACY_ERROR) {
+            fprintf(stdout, "\nError: accuracy too low at t = 0, simulation stopped\n");
+            fflush(stdout);
+            single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
+            return ACCURACY_ERROR;
+        }
     size_t record_index = time / mod->record_itv;
     double record_time = time - record_index * record_itv;
 
@@ -264,29 +273,25 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         
         // update sums
         curr_update_sum_round++;
-        if (curr_update_sum_round > update_sum_freq) {
+        if (curr_update_sum_round > update_sum_rounds) {
             curr_update_sum_round = 0;
-            update_sum_freq = UPDATE_SUM_FREQ_LG;  // assume can make it larger
-            size_t ij = 0;
 
-            for (size_t i = 0; i < N; i++) {
-                for (size_t j = 0; j < M; j++) {
-                    double sum_U_weight = 0;
-                    double sum_V_weight = 0;
-                    for (size_t k = 0; k < 4; k++) {
-                        sum_U_weight += world[ij].U_weight[k];
-                        sum_V_weight += world[ij].V_weight[k];
-                    }
-                    world[ij].sum_U_weight = sum_U_weight;
-                    world[ij].sum_V_weight = sum_V_weight;
-                    // patch_rates are updated every time a patch is changed
-                    if (sum_U_weight > ACCURATE_BOUND) {
-                        update_sum_freq = UPDATE_SUM_FREQ_SM;  // values too large, put back the small update frequency
-                    }
-                    ij++;
+            update_sum_rounds = UPDATE_SUM_ROUNDS_LG;  // assume can make it larger
+            for (size_t ij = 0; ij < NM; ij++) {
+                double sum_U_weight = 0;
+                double sum_V_weight = 0;
+                for (size_t k = 0; k < 4; k++) {
+                    sum_U_weight += world[ij].U_weight[k];
+                    sum_V_weight += world[ij].V_weight[k];
                 }
+                if (sum_U_weight > ACCURATE_BOUND || sum_V_weight > ACCURATE_BOUND) {
+                    update_sum_rounds = UPDATE_SUM_ROUNDS_SM;  // values too large, put back the small update frequency
+                }
+                world[ij].sum_U_weight = sum_U_weight;
+                world[ij].sum_V_weight = sum_V_weight;
+                // patch_rates are updated every time a patch is changed
             }
-            ij = 0;
+            size_t ij = 0;
             sum_rates = 0;
             for (size_t i = 0; i < N; i++) {
                 double sum_rates_by_row_i = 0;
@@ -307,6 +312,7 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         size_t sij1 = signal.ij1;
         size_t sij2 = signal.ij2;
         uint8_t rela_loc = signal.rela_loc;
+
         if (rela_loc == NO_MIG) {
             // if only one
             sum_rates_by_row[si1] -= patch_rates[sij1];
@@ -396,6 +402,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         find_patch(&picked, expected_sum, patch_rates, sum_rates_by_row, sum_rates, N, M);
         size_t picked_idx = picked.i * M + picked.j;
         uint8_t e0 = find_event(&world[picked_idx], expected_sum - picked.current_sum);
+        if (picked_idx >= NM || e0 >= 12) {
+            fprintf(stdout, "\nError: accuracy too low at t = %f, simulation stopped\n", time);
+            fflush(stdout);
+            single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
+            return ACCURACY_ERROR;
+        }
 
         // make signal
         if (boundary) {
@@ -424,16 +436,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 record_time -= multi_records * record_itv;
                 size_t upper = record_index + multi_records;
 
-                size_t ij = 0;
-                for (size_t i = 0; i < N; i++) {
-                    for (size_t j = 0; j < M; j++) {
-                        for (size_t k = record_index; k < upper; k++) {
-                            mod->U1d[ij * max_record + k] += world[ij].U;
-                            mod->V1d[ij * max_record + k] += world[ij].V;
-                            mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
-                            mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
-                        }
-                        ij++;
+                for (size_t ij = 0; ij < NM; ij++) {
+                    for (size_t k = record_index; k < upper; k++) {
+                        mod->U1d[ij * max_record + k] += world[ij].U;
+                        mod->V1d[ij * max_record + k] += world[ij].V;
+                        mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
+                        mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
                     }
                 }
                 record_index += multi_records;
@@ -441,16 +449,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
 
         } else {
             // if already exceeds maxtime
-            size_t ij = 0;
-            for (size_t i = 0; i < N; i++) {
-                for (size_t j = 0; j < M; j++) {
-                    for (size_t k = record_index; k < max_record; k++) {
-                        mod->U1d[ij * max_record + k] += world[ij].U;
-                        mod->V1d[ij * max_record + k] += world[ij].V;
-                        mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
-                        mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
-                    }
-                    ij++;
+            for (size_t ij = 0; ij < NM; ij++) {
+                for (size_t k = record_index; k < max_record; k++) {
+                    mod->U1d[ij * max_record + k] += world[ij].U;
+                    mod->V1d[ij * max_record + k] += world[ij].V;
+                    mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
+                    mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
                 }
             }
         }
@@ -483,7 +487,7 @@ static void single_test_free(patch_t** world, size_t** nb_indices, double** patc
 
 
 
-uint8_t run(model_t* mod, char* message, size_t msg_len) {
+uint8_t run(model_t* restrict mod, char* message, size_t msg_len) {
     if (!mod->data_empty) {
         // this won't happen if called from python, the ``simulation.run`` caller has checked it.
         fprintf(stdout, "Error: mod has non-empty data\n");
@@ -538,6 +542,9 @@ uint8_t run(model_t* mod, char* message, size_t msg_len) {
             case SIM_OVERFLOW:
                 // error message is handled by single_test
                 return SIM_OVERFLOW;
+            case ACCURACY_ERROR:
+                // error message is handled by single_test
+                return ACCURACY_ERROR;
         }
     }
 

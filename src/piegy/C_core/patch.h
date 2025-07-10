@@ -14,10 +14,10 @@
 
 
 typedef struct patch_t {
-    size_t i;
-    size_t j;
+    size_t row;
+    size_t col;
 
-    uint32_t U;
+    uint32_t U;  // store as double directly to avoid runtime conversion (to double)
     uint32_t V;
     double U_pi;
     double V_pi;
@@ -34,8 +34,8 @@ typedef struct patch_t {
 } patch_t;
 
 // in .c
-void patch_init(patch_t* p, uint32_t U, uint32_t V, size_t i, size_t j);
-void set_nb(patch_t* world, size_t* nb_start, size_t ij, size_t NM);
+void patch_init(patch_t* p, uint32_t U, uint32_t V, size_t row, size_t col);
+void set_nb(patch_t* world, double* P_start, size_t* nb_start, size_t ij, size_t NM) ;
 
 #endif // PATCH_H
 

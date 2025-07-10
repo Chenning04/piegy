@@ -92,6 +92,7 @@ def test_var1(mod, var, values, dirs, compress_itv = None):
             if compress_itv != None:
                 sim2.compress_data(compress_itv)
             data_t.save_data(sim2, var_dirs[k], print_msg = False)
+            del sim2
         except (OverflowError, RuntimeError):
             print(current_var_str + ' raised error, skipped')
             continue
@@ -139,6 +140,7 @@ def test_var2(mod, var1, var2, values1, values2, dirs, compress_itv = None):
                 if compress_itv != None:
                     sim2.compress_data(compress_itv)
                 data_t.save_data(sim2, var_dirs[k1][k2], print_msg = False)
+                del sim2
             except (OverflowError, RuntimeError):
                 print(current_var_str + ' raised error, skipped')
                 continue
@@ -185,6 +187,7 @@ def var_UV1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end =
 
         U_ave.append(sum(figure_t.ave_interval_1D(simk.U, start_index, end_index)) / NM)
         V_ave.append(sum(figure_t.ave_interval_1D(simk.V, start_index, end_index)) / NM)
+        del simk
         
     #### plot ####
     if ax_U == None:
@@ -253,6 +256,7 @@ def var_UV2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, va
 
             U_ave[k1].append(sum(figure_t.ave_interval_1D(simk.U, start_index, end_index)) / NM)
             V_ave[k1].append(sum(figure_t.ave_interval_1D(simk.V, start_index, end_index)) / NM)
+            del simk
 
     U_ave = np.array(U_ave)
     V_ave = np.array(V_ave)
@@ -340,7 +344,6 @@ def var_pi1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end =
 
         U_ave.append(np.sum(figure_t.ave_interval(simk.Upi, start_index, end_index)) / NM)
         V_ave.append(np.sum(figure_t.ave_interval(simk.Vpi, start_index, end_index)) / NM)
-
         del simk
             
     #### plot ####
@@ -406,8 +409,7 @@ def var_pi2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, va
 
             U_ave[k1].append(np.sum(figure_t.ave_interval(simk.Upi, start_index, end_index)) / NM)
             V_ave[k1].append(np.sum(figure_t.ave_interval(simk.Vpi, start_index, end_index)) / NM)
-
-            del simk    # manually delete this large object
+            del simk
 
     U_ave = np.array(U_ave)
     V_ave = np.array(V_ave)
@@ -507,14 +509,16 @@ def var_convergence1(var_dirs, interval = 20, start = 0.8, fluc = 0.07):
 
     diverge_list = []
 
-    for dirs in var_dirs:
+    for k in range(len(var_dirs)):
+        dirs = var_dirs[k]
         try:
-            mod = data_t.read_data(dirs)
+            simk = data_t.read_data(dirs)
         except FileNotFoundError:
             print(dirs + ' data not found, skipped')
             continue
-        if not analysis.check_convergence(mod, interval, start, fluc):
+        if not analysis.check_convergence(simk, interval, start, fluc):
             diverge_list.append(dirs)
+        del simk
 
     return diverge_list
 
@@ -574,14 +578,16 @@ def var_convergence2(var_dirs, interval = 20, start = 0.8, fluc = 0.07):
     diverge_list = []
 
     for sublist in var_dirs:
-        for dirs in sublist:
+        for k in range(len(sublist)):
+            dirs = sublist[k]
             try:
-                mod = data_t.read_data(dirs)
+                simk = data_t.read_data(dirs)
             except FileNotFoundError:
                 print(dirs + ' data not found, skipped')
                 continue
-            if not analysis.check_convergence(mod, interval, start, fluc):
+            if not analysis.check_convergence(simk, interval, start, fluc):
                 diverge_list.append(dirs)
+            del simk
 
     return diverge_list
 

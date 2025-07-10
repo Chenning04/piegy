@@ -1,4 +1,4 @@
-__version__ = '2.3.6'
+__version__ = '2.3.7'
 
 '''
 version history:
@@ -43,4 +43,5 @@ version history:
 2.3.4: change back to the mig & payoff rules in version 2.3.2
 2.3.5: improved accuracy for simulation, now can better handle large mig rates. Numerical errors are now being checked and reduced automatically based on how large the values are.
 2.3.6: index error due to reduced accuracy is now explicitly handled.
+2.3.7: update migration rules on the boundary. mu values are scaled based on how many neighbors a patch has. Minor debugging in several modules.
 '''

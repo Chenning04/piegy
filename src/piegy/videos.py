@@ -27,7 +27,6 @@ import matplotlib.style as mplstyle
 import numpy as np
 import os
 from cv2 import imread, VideoWriter, VideoWriter_fourcc
-from moviepy import ImageSequenceClip
 
 
 # a list of supported figures
@@ -144,7 +143,7 @@ def frame_lim(mod, func, frames):
     U_ylim = get_max_lim(U_ylist)
     V_xlim = get_max_lim(V_xlist)
     V_ylim = get_max_lim(V_ylist)
-    
+
     return U_xlim, U_ylim, V_xlim, V_ylim
 
 
@@ -200,14 +199,15 @@ def make_mp4(video_dir, frame_dir, fps):
         if (file[-4:] == '.png') and ('frame' in file):
             frame_path.append(os.path.join(frame_dir, file))
 
+    # setup cv2 video writer
     first_frame = imread(frame_path[0])
     height, width, _ = first_frame.shape
     fourcc = VideoWriter_fourcc(*'mp4v')
     video_writer = VideoWriter(video_dir, fourcc, fps, (width, height))
 
     for file in frame_path:
-            frame = imread(file)
-            video_writer.write(frame)
+        frame = imread(file)
+        video_writer.write(frame)
     video_writer.release()
 
 
@@ -236,9 +236,9 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
     # convert color if invalid colors are given
     U_color, V_color = convert_color(func_name, U_color, V_color)
 
-    # set fast style for faster speed
-    original_rc = mpl.rcParams.copy()
-    mplstyle.use('fast')
+    # set Agg backend for faster speed
+    original_backend = mpl.get_backend()
+    mpl.use("Agg")
     
     # print progress
     one_progress = frames / 100
@@ -267,7 +267,7 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
 
     #### for loop ####
     
-    for i in range(frames - 1):
+    for i in range(frames):
         if i > current_progress:
             print('making frames', round(i / frames * 100), '%', end = '\r')
             current_progress += one_progress
@@ -277,9 +277,9 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
             fig_U, ax_U = plt.subplots(figsize = figsize)
             fig_V, ax_V = plt.subplots(figsize = figsize)
         else:
-            fig_U, ax_U = plt.subplots(figsize = figsize)#, constrained_layout = True)
-            fig_V, ax_V = plt.subplots(figsize = figsize)#, constrained_layout = True)
-
+            fig_U, ax_U = plt.subplots(figsize = figsize)
+            fig_V, ax_V = plt.subplots(figsize = figsize)
+            
         if 'hmap' in func_name:
             func(mod, ax_U = ax_U, ax_V = ax_V, U_color = U_color, V_color = V_color, start = i / frames, end = (i + 1) / frames, vrange_U = U_clim, vrange_V = V_clim)
         else:
@@ -304,6 +304,9 @@ def make_video(mod, func_name = 'UV_hmap', frames = 100, dpi = 200, fps = 30, U_
         plt.close(fig_V)
         
     #### for loop ends ####
+
+    # reset to original backend
+    mpl.use(original_backend)
     
     # frames done
     print('making mp4...      ', end = '\r')

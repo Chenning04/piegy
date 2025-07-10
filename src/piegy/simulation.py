@@ -450,11 +450,11 @@ def run(mod, message = ""):
     elif result == SIM_OVERFLOW:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
-        raise OverflowError('Overflow in simulation. Possibly due to too large w1, w2, or payoff matrix values.')
+        raise OverflowError('Overflow in simulation. Possibly due to too large w1, w2, or payoff.')
     elif result == ACCURACY_ERROR:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
-        raise RuntimeError('Accuracy dropped catastrophically during simulation. Possibly due to too large w1, w2, or payoff matrix values.')
+        raise RuntimeError('Accuracy dropped catastrophically during simulation. Possibly due to too large w1, w2, or payoff.')
     else:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
@@ -529,9 +529,9 @@ def check_overflow_func(mod):
             w1_pi = pi_expected[i][j] * mod.P[i][j][2]  # w1 * U_pi
             w2_pi = pi_expected[i][j] * mod.P[i][j][3]  # w2 * V_pi
             if ((w1_pi > EXP_OVERFLOW_BOUND) or (w2_pi > EXP_OVERFLOW_BOUND)):
-                print("Warning: might cause overflow in simulation. \n\t w1, w2, or payoff matrix values too large")
+                print("Warning: might cause overflow in simulation. w1, w2, or payoff matrix values too large")
                 return
             if ((w1_pi > EXP_TOO_LARGE_BOUND) or (w2_pi > EXP_TOO_LARGE_BOUND)):
-                print("Warning: might have low accuracy in simulation. \n\t w1, w2, or payoff matrix values too large")
+                print("Warning: might have low accuracy in simulation. w1, w2, or payoff matrix values too large")
                 return
 

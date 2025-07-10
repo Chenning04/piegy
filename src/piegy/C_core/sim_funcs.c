@@ -76,68 +76,60 @@ static double single_init(const model_t* restrict mod, patch_t* restrict world, 
     size_t M = mod->M;
     size_t NM = N * M;
     size_t max_record = mod->max_record;
-    size_t ij = 0;  // used to track index i * M + j in double for loops
+    size_t ij_out = 0;  // used to track index i * M + j in double for loops, "out" means not the "looper" in for loop
 
     // init world
     for (size_t i = 0; i < N; i++) {
         for (size_t j = 0; j < M; j++) {
-            patch_init(&world[ij], mod->I[ij * 2], mod->I[ij * 2 + 1], i, j);
-            ij++;
+            patch_init(&world[ij_out], mod->I[ij_out * 2], mod->I[ij_out * 2 + 1], i, j);
+            ij_out++;
         }
     }
 
     // init nb_indices
-    ij = 0;
+    ij_out = 0;
     if (mod->boundary) {
         for (size_t i = 0; i < N; i++) {
             for (size_t j = 0; j < M; j++) {
-                find_nb_zero_flux(&nb_indices[ij * 4], i, j, N, M, NM);
-                ij++;
+                find_nb_zero_flux(&nb_indices[ij_out * 4], i, j, N, M, NM);
+                ij_out++;
             }
         }
     } else {
         for (size_t i = 0; i < N; i++) {
             for (size_t j = 0; j < M; j++) {
-                find_nb_periodical(&nb_indices[ij * 4], i, j, N, M, NM);
-                ij++;
+                find_nb_periodical(&nb_indices[ij_out * 4], i, j, N, M, NM);
+                ij_out++;
             }
         }
     }
 
 
     // set nb pointers for patches
-    ij = 0;
-    for (size_t i = 0; i < N; i++) {
-        for (size_t j = 0; j < M; j++) {
-            set_nb(world, &nb_indices[ij * 4], ij, NM);
-            ij++;
-        }
+    for (size_t ij = 0; ij < NM; ij++) {
+        set_nb(world, &(mod->P[ij * 6]), &nb_indices[ij * 4], ij, NM);
     }
 
     //////// Begin Running ////////
 
     // init payoff & natural death rates
-    ij = 0;
-    for (size_t i = 0; i < N; i++) {
-        for (size_t j = 0; j < M; j++) {
-            update_pi_k(&world[ij], &(mod->X[ij * 4]), &(mod->P[ij * 6]));
-            ij++;
-        }
+    for (size_t ij = 0; ij < N; ij++) {
+        update_pi_k(&world[ij], &(mod->X[ij * 4]), &(mod->P[ij * 6]));
     }
 
     // init migration rates & store patch rates
-    ij = 0;
+    ij_out = 0;
     for (size_t i = 0; i < N; i++) {
         for (size_t j = 0; j < M; j++) {
-            uint8_t mig_result = init_mig(&world[ij], &(mod->P[ij * 6]));  // init mig rates for all 4 directions
+            uint8_t mig_result = init_mig(&world[ij_out], &(mod->P[ij_out * 6]));  // init mig rates for all 4 directions
             if (mig_result == SIM_OVERFLOW) {
                 return -1 * SIM_OVERFLOW;
             }
-            double ij_rates = world[ij].sum_pi_death_rates + world[ij].sum_mig_rates;
-            patch_rates[ij] = ij_rates;
+            double ij_rates = world[ij_out].sum_pi_death_rates + world[ij_out].sum_mig_rates;
+            patch_rates[ij_out] = ij_rates;
             sum_rates_by_row[i] += ij_rates;
             *sum_rates_p = *sum_rates_p + ij_rates;  // can't do *sum_rates_p += ij_rates
-            ij++;
+            ij_out++;
         }
     }
 
@@ -176,18 +168,16 @@ static double single_init(const model_t* restrict mod, patch_t* restrict world, 
     // store data
     if (time > mod->record_itv) {
         size_t recod_idx = (size_t) (time / mod->record_itv);
-        ij = 0;
-        for (size_t i = 0; i < N; i++) {
-            for (size_t j = 0; j < M; j++) {
-                for (size_t k = 0; k < recod_idx; k++) {
-                    mod->U1d[ij * max_record + k] += world[ij].U;
-                    mod->V1d[ij * max_record + k] += world[ij].V;
-                    mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
-                    mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
-                }
-                ij++;
+
+        for (size_t ij = 0; ij < NM; ij++) {
+            size_t ij_max_record = ij * max_record;
+            for (size_t k = 0; k < recod_idx; k++) {
+                mod->U1d[ij_max_record + k] += world[ij].U;
+                mod->V1d[ij_max_record + k] += world[ij].V;
+                mod->Upi_1d[ij_max_record + k] += world[ij].U_pi;
+                mod->Vpi_1d[ij_max_record + k] += world[ij].V_pi;
             }
-        } 
+        }
     }
 
     return time;
@@ -204,10 +194,15 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
     size_t max_record = mod->max_record;
     double record_itv = mod->record_itv;
     bool boundary = mod->boundary;
+    double* X = mod->X;
+    double* P = mod->P;
+    double* U1d = mod->U1d;
+    double* V1d = mod->V1d;
+    double* Upi_1d = mod->Upi_1d;
+    double* Vpi_1d = mod->Vpi_1d;
 
     // print progress
     double one_progress = 0.0;
-    double current_progress = one_progress;
     if (mod->print_pct != -1) {
         one_progress = maxtime * mod->print_pct / 100.0;
         fprintf(stdout, "\r                     ");
@@ -216,12 +211,13 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
     } else {
         one_progress = 2.0 * maxtime;
     }
+    double current_progress = one_progress;
 
     // update sum of rates every 1e5 rounds
     // many rates are updated each time, rather than re-calculated. 
     // So need to re-calculate from scratch every some rounds to reduce numerical errors
     size_t curr_update_sum_round = 0;  // current round
-    size_t update_sum_rounds = UPDATE_SUM_ROUNDS_SM;  // recalculate sum every this many rounds
+    size_t update_sum_freq = UPDATE_SUM_ROUNDS_SM;  // recalculate sum every this many rounds
 
     // Initialize simulation
     patch_t* world = (patch_t*) calloc(NM, sizeof(patch_t));
@@ -251,32 +247,33 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
             fflush(stdout);
             single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
             return ACCURACY_ERROR;
-        }
-    size_t record_index = time / mod->record_itv;
+    }
+    size_t record_index = (size_t) (time / mod->record_itv);
     double record_time = time - record_index * record_itv;
 
 
     while (time < maxtime) {
-
-        // Print progress
-        if (time > current_progress) {
-            uint8_t curr_prog = (uint8_t)(time * 100 / maxtime);
-            if (curr_prog < 10) {
-                fprintf(stdout, "\r%s: %d %%", message, (int)(time * 100 / maxtime));
-            } else {
-                fprintf(stdout, "\r%s: %d%%", message, (int)(time * 100 / maxtime));
-            }
-            fflush(stdout);
-            //fflush(stdout);  // Make sure it prints immediately
-            current_progress += one_progress;
-        }
         
-        // update sums
+        // update sums and print progress
         curr_update_sum_round++;
-        if (curr_update_sum_round > update_sum_rounds) {
+        if (curr_update_sum_round > update_sum_freq) {
             curr_update_sum_round = 0;
 
-            update_sum_rounds = UPDATE_SUM_ROUNDS_LG;  // assume can make it larger
+            // Print progress
+            if (time > current_progress) {
+                uint8_t curr_prog = (uint8_t)(time * 100 / maxtime);
+                if (curr_prog < 10) {
+                    fprintf(stdout, "\r%s: %d %%", message, (int)(time * 100 / maxtime));
+                } else {
+                    fprintf(stdout, "\r%s: %d%%", message, (int)(time * 100 / maxtime));
+                }
+                fflush(stdout);
+                //fflush(stdout);  // Make sure it prints immediately
+                current_progress += one_progress;
+            }
+
+            // update sum
+            update_sum_freq = UPDATE_SUM_ROUNDS_LG;  // assume can make it larger
             for (size_t ij = 0; ij < NM; ij++) {
                 double sum_U_weight = 0;
                 double sum_V_weight = 0;
@@ -285,19 +282,19 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                     sum_V_weight += world[ij].V_weight[k];
                 }
                 if (sum_U_weight > ACCURATE_BOUND || sum_V_weight > ACCURATE_BOUND) {
-                    update_sum_rounds = UPDATE_SUM_ROUNDS_SM;  // values too large, put back the small update frequency
+                    update_sum_freq = UPDATE_SUM_ROUNDS_SM;  // values too large, put back the small update frequency
                 }
                 world[ij].sum_U_weight = sum_U_weight;
                 world[ij].sum_V_weight = sum_V_weight;
                 // patch_rates are updated every time a patch is changed
             }
-            size_t ij = 0;
+            size_t ij_out = 0;
             sum_rates = 0;
             for (size_t i = 0; i < N; i++) {
                 double sum_rates_by_row_i = 0;
                 for (size_t j = 0; j < M; j++) {
-                    sum_rates_by_row_i += patch_rates[ij];
-                    ij++;
+                    sum_rates_by_row_i += patch_rates[ij_out];
+                    ij_out++;
                 }
                 sum_rates_by_row[i] = sum_rates_by_row_i;
                 sum_rates += sum_rates_by_row_i;
@@ -318,8 +315,8 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
             sum_rates_by_row[si1] -= patch_rates[sij1];
             sum_rates -= patch_rates[sij1];
 
-            update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));
-            update_mig_just_rate(&world[sij1], &(mod->P[sij1 * 6]));
+            update_pi_k(&world[sij1], &(X[sij1 * 4]), &(P[sij1 * 6]));
+            update_mig_just_rate(&world[sij1], &(P[sij1 * 6]));
 
             patch_rates[sij1] = world[sij1].sum_pi_death_rates + world[sij1].sum_mig_rates;
             sum_rates_by_row[si1] += patch_rates[sij1];
@@ -331,11 +328,11 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
             sum_rates -= patch_rates[sij1];
             sum_rates -= patch_rates[sij2];
 
-            update_pi_k(&world[sij1], &(mod->X[sij1 * 4]), &(mod->P[sij1 * 6]));  // update both patches' payoffs first
-            update_pi_k(&world[sij2], &(mod->X[sij2 * 4]), &(mod->P[sij2 * 6]));
+            update_pi_k(&world[sij1], &(X[sij1 * 4]), &(P[sij1 * 6]));  // update both patches' payoffs first
+            update_pi_k(&world[sij2], &(X[sij2 * 4]), &(P[sij2 * 6]));
 
-            if (update_mig_weight_rate(&world[sij1], &(mod->P[sij1 * 6]), rela_loc) == SIM_OVERFLOW || 
-                update_mig_weight_rate(&world[sij2], &(mod->P[sij2 * 6]), rela_loc ^ 1) == SIM_OVERFLOW) {
+            if (update_mig_weight_rate(&world[sij1], &(P[sij1 * 6]), rela_loc) == SIM_OVERFLOW || 
+                update_mig_weight_rate(&world[sij2], &(P[sij2 * 6]), rela_loc ^ 1) == SIM_OVERFLOW) {
 
                 fprintf(stdout, "\nError: overflow at t = %f\n", time);
                 fflush(stdout);
@@ -357,7 +354,7 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 size_t nb_idx = nb_indices[sij1 * 4 + k];
                 if (nb_idx == NM) { continue; }  // invalid neighbor
                 // all neighbors, as long as exists, need to change
-                if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
+                if (update_mig_weight_rate(&world[nb_idx], &(P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                     fprintf(stdout, "\nError: overflow at t = %f\n", time);
                     fflush(stdout);
                     single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -372,7 +369,7 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 if (nb_idx == NM) { continue; }
                 if (k != rela_loc) {
                     // nb_idx isn't the second last-changed patch
-                    if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
+                    if (update_mig_weight_rate(&world[nb_idx], &(P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
                         single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -386,7 +383,7 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 if (nb_idx == NM) { continue; }
                 if (k != (rela_loc ^ 1)) {
                     // nb_idx isn't the first last-changed patch
-                    if (update_mig_weight_rate(&world[nb_idx], &(mod->P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
+                    if (update_mig_weight_rate(&world[nb_idx], &(P[nb_idx * 6]), k ^ 1) == SIM_OVERFLOW) {
                         fprintf(stdout, "\nError: overflow at t = %f\n", time);
                         fflush(stdout);
                         single_test_free(&world, &nb_indices, &patch_rates,  &sum_rates_by_row);
@@ -437,11 +434,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 size_t upper = record_index + multi_records;
 
                 for (size_t ij = 0; ij < NM; ij++) {
+                    size_t ij_max_record = ij * max_record;
                     for (size_t k = record_index; k < upper; k++) {
-                        mod->U1d[ij * max_record + k] += world[ij].U;
-                        mod->V1d[ij * max_record + k] += world[ij].V;
-                        mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
-                        mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
+                        U1d[ij_max_record + k] += world[ij].U;
+                        V1d[ij_max_record + k] += world[ij].V;
+                        Upi_1d[ij_max_record + k] += world[ij].U_pi;
+                        Vpi_1d[ij_max_record + k] += world[ij].V_pi;
                     }
                 }
                 record_index += multi_records;
@@ -450,11 +448,12 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         } else {
             // if already exceeds maxtime
             for (size_t ij = 0; ij < NM; ij++) {
+                size_t ij_max_record = ij * max_record;
                 for (size_t k = record_index; k < max_record; k++) {
-                    mod->U1d[ij * max_record + k] += world[ij].U;
-                    mod->V1d[ij * max_record + k] += world[ij].V;
-                    mod->Upi_1d[ij * max_record + k] += world[ij].U_pi;
-                    mod->Vpi_1d[ij * max_record + k] += world[ij].V_pi;
+                    U1d[ij_max_record + k] += world[ij].U;
+                    V1d[ij_max_record + k] += world[ij].V;
+                    Upi_1d[ij_max_record + k] += world[ij].U_pi;
+                    Vpi_1d[ij_max_record + k] += world[ij].V_pi;
                 }
             }
         }
@@ -552,8 +551,10 @@ uint8_t run(model_t* restrict mod, char* message, size_t msg_len) {
 
     double stop = clock();
 
-    fprintf(stdout, "\r%sruntime: %.3fs             \n", message, (double)(stop - start) / CLOCKS_PER_SEC);
-    fflush(stdout);
+    if (mod->print_pct != -1) {
+        fprintf(stdout, "\r%sruntime: %.3fs             \n", message, (double)(stop - start) / CLOCKS_PER_SEC);
+        fflush(stdout);
+    }
     return SUCCESS;
 }
 

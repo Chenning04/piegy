@@ -11,14 +11,14 @@
 int main() {
     size_t N = 1;
     size_t M = 100;
-    double maxtime = 300;
+    double maxtime = 1000;
     double record_itv = 0.1;
-    size_t sim_time = 1;
+    size_t sim_time = 10;
     bool boundary = true;
-    uint32_t I_single[2] = {3, 3};
+    uint32_t I_single[2] = {400, 200};
     double X_single[4] = {-1, 4, 0, 2};
-    double P_single[6] = {0.5, 0.5, 80, 80, 0.001, 0.001};
-    int32_t print_pct = 1;
+    double P_single[6] = {0.5, 0.5, 10, 10, 0.001, 0.001};
+    int32_t print_pct = 25;
     int32_t seed = 36;  // -1 for None
 
     uint32_t I[N * M * 2];

@@ -18,8 +18,8 @@
 
 
 
-// upper bound for RNG is 2^24 + 1
-#define RAND_UPPER_PLUS_2 (double) (0x3fffffffu + 2)
+// upper bound for RNG is 2^30 + 1
+#define RAND_UPPER_PLUS_2 (double) ((1LL << 30) + 1)
 
 // directions of migration
 // so that 3 - mig_dir = reflection of it. Used to track neighbors
@@ -37,18 +37,23 @@
 #define SIM_OVERFLOW 3
 #define ACCURACY_ERROR 4
 
+
+/**
+ * Handling Numerical Errors:
+ * half of the rates / values related to rates are calculated on a cumulative basis. i.e., updated over time instead of re-calculating from scratch
+ * numerival errors might explode in this case, so need to re-calculate every sometime
+*/
+
 // where exp(x) is considered overflow
 // below the actual bound (709) to preserve accuracy
 #define EXP_OVERFLOW_BOUND 500
-#define ACCURATE_BOUND 10000000000LL
+
+// Compare current rates with this bound
+#define ACCURATE_BOUND 1LL << 33  // about 8.6 * 10^9
 
 // how frequent to update rates & sum of rates in single test (recalculate)
-#define UPDATE_SUM_ROUNDS_SM 100
+#define UPDATE_SUM_ROUNDS_SM 100  // small, more frequent if some rate is larger than ACCURATE_BOUND
 #define UPDATE_SUM_ROUNDS_LG 10000
-
-
-static uint64_t pcg_state = 0;
-static uint64_t pcg_inc = 0;
 
  
 
@@ -109,7 +114,7 @@ static inline double random01() {
     uint32_t r1 = rand() & 0x7fff;  // RAND_MAX is different across machines, ensure 15 bits
     uint32_t r2 = rand() & 0x7fff;
 
-    double r_combined = (r1  << 15) + r2;  // discard the lower 3 bits, which are unstable
+    double r_combined = (r1  << 15) + r2;
     return (r_combined + 1) / RAND_UPPER_PLUS_2;
 }
 
@@ -121,8 +126,8 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
     // M_start: start index of patch (i, j)'s matrix
     // P_start: start index of p's patch variables, i.e., ij * 6
 
-    double U = (double) p->U;
-    double V = (double) p->V;
+    uint32_t U = p->U;
+    uint32_t V = p->V;
     double sum = U + V;
     double U_ratio = U / sum;
     double V_ratio = V / sum;
@@ -165,8 +170,8 @@ static inline void update_mig_just_rate(patch_t* restrict p, const double* restr
     double* p_U_weight = p->U_weight;
     double* p_V_weight = p->V_weight;
 
-    double mu1_U = P_start[0] * (double)p->U;
-    double mu2_V = P_start[1] * (double)p->V;
+    double mu1_U = P_start[0] * p->U;
+    double mu2_V = P_start[1] * p->V;
     
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
@@ -349,9 +354,6 @@ static inline void change_popu(patch_t* restrict p, uint8_t s) {
                 p->V -= 1;
             }
             return;
-        //default:
-        //    fprintf(stderr, "Bug: invalid event number in change_popu: %hhu\n", s);
-        //    return;
     }
 }
 

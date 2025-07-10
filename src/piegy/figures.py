@@ -332,15 +332,15 @@ def pi_bar(mod, ax_U = None, ax_V = None, U_color = 'violet', V_color = 'yellowg
     end_index = int(mod.max_record * end)
     
     Upi_ave = figure_t.ave_interval_1D(mod.Upi, start_index, end_index)
-    V_pi_ave = figure_t.ave_interval_1D(mod.Vpi, start_index, end_index)
+    Vpi_ave = figure_t.ave_interval_1D(mod.Vpi, start_index, end_index)
     
     U_title = figure_t.gen_title(r'$p_H$', start, end)
     U_text = figure_t.gen_text(np.mean(Upi_ave), np.std(Upi_ave))
     V_title = figure_t.gen_title(r'$p_D$', start, end)
-    V_text = figure_t.gen_text(np.mean(V_pi_ave), np.std(V_pi_ave))
+    V_text = figure_t.gen_text(np.mean(Vpi_ave), np.std(Vpi_ave))
     
     ax_U = figure_t.bar(Upi_ave, ax_U, U_color, 'Patches', 'Payoff ' + r'$p_H$', U_title, U_text)
-    ax_V = figure_t.bar(V_pi_ave, ax_V, V_color, 'Patches', 'Payoff ' + r'$p_D$', V_title, V_text)
+    ax_V = figure_t.bar(Vpi_ave, ax_V, V_color, 'Patches', 'Payoff ' + r'$p_D$', V_title, V_text)
 
     return ax_U, ax_V
 

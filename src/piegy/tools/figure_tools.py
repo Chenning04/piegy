@@ -187,7 +187,7 @@ def ave_interval_1D(data, start_index, end_index):
     M = len(data[0])
 
     if start_index == end_index:
-        start_index = end_index - 1
+        end_index = start_index + 1  # exactly one record
         
     data_ave = np.zeros(N * M)
     

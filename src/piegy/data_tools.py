@@ -2,8 +2,8 @@
 Stores and reads a model object.
 
 Functions:
-- save_data:    save a model object.
-- read_data:    read a model object.
+- save:    save a model object.
+- load:    load a model object.
 '''
 
 
@@ -14,7 +14,7 @@ import gzip
 import os
 
 
-def save_data(mod, dirs = '', print_msg = True):
+def save(mod, dirs = '', print_msg = True):
     '''
     Saves a model object. Data will be stored at dirs/data.json.gz
 
@@ -70,7 +70,7 @@ def save_data(mod, dirs = '', print_msg = True):
 
 
 
-def read_data(dirs):
+def load(dirs):
     '''
     Reads and returns a model object.
 

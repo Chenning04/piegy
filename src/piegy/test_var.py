@@ -91,7 +91,7 @@ def test_var1(mod, var, values, dirs, compress_itv = None):
             simulation.run(sim2, message = current_var_str + ', ')
             if compress_itv != None:
                 sim2.compress_data(compress_itv)
-            data_t.save_data(sim2, var_dirs[k], print_msg = False)
+            data_t.save(sim2, var_dirs[k], print_msg = False)
             del sim2
         except (OverflowError, RuntimeError):
             print(current_var_str + ' raised error, skipped')
@@ -139,7 +139,7 @@ def test_var2(mod, var1, var2, values1, values2, dirs, compress_itv = None):
                 simulation.run(sim2, message = current_var_str + ', ')
                 if compress_itv != None:
                     sim2.compress_data(compress_itv)
-                data_t.save_data(sim2, var_dirs[k1][k2], print_msg = False)
+                data_t.save(sim2, var_dirs[k1][k2], print_msg = False)
                 del sim2
             except (OverflowError, RuntimeError):
                 print(current_var_str + ' raised error, skipped')
@@ -175,7 +175,7 @@ def var_UV1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end =
 
     for k in range(len(var_dirs)):
         try:
-            simk = data_t.read_data(var_dirs[k])
+            simk = data_t.load(var_dirs[k])
         except FileNotFoundError:
             print(var + '=' + str(values[k]) + ' not found, skipped')
             U_ave.append(None)
@@ -244,7 +244,7 @@ def var_UV2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, va
     for k1 in range(len(var_dirs)):
         for k2 in range(len(var_dirs[k1])):
             try:
-                simk = data_t.read_data(var_dirs[k1][k2])
+                simk = data_t.load(var_dirs[k1][k2])
             except FileNotFoundError:
                 print(var1 + '=' + str(values1[k1]) + ', ' + var2 + '=' + str(values2[k2]) + ' not found, skipped')
                 U_ave[k1].append(None)
@@ -332,7 +332,7 @@ def var_pi1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end =
     
     for k in range(len(var_dirs)):
         try:
-            simk = data_t.read_data(var_dirs[k])
+            simk = data_t.load(var_dirs[k])
         except FileNotFoundError:
             print(var + '=' + str(values[k]) + ' not found, skipped')
             U_ave.append(None)
@@ -397,7 +397,7 @@ def var_pi2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, va
     for k1 in range(len(var_dirs)):
         for k2 in range(len(var_dirs[k1])):
             try:
-                simk = data_t.read_data(var_dirs[k1][k2])
+                simk = data_t.load(var_dirs[k1][k2])
             except FileNotFoundError:
                 print(var1 + '=' + str(values1[k1]) + ', ' + var2 + '=' + str(values2[k2]) + ' not found, skipped')
                 U_ave[k1].append(None)
@@ -512,7 +512,7 @@ def var_convergence1(var_dirs, interval = 20, start = 0.8, fluc = 0.07):
     for k in range(len(var_dirs)):
         dirs = var_dirs[k]
         try:
-            simk = data_t.read_data(dirs)
+            simk = data_t.load(dirs)
         except FileNotFoundError:
             print(dirs + ' data not found, skipped')
             continue
@@ -581,7 +581,7 @@ def var_convergence2(var_dirs, interval = 20, start = 0.8, fluc = 0.07):
         for k in range(len(sublist)):
             dirs = sublist[k]
             try:
-                simk = data_t.read_data(dirs)
+                simk = data_t.load(dirs)
             except FileNotFoundError:
                 print(dirs + ' data not found, skipped')
                 continue

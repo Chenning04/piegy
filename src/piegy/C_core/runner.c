@@ -11,9 +11,9 @@
 int main() {
     size_t N = 1;
     size_t M = 100;
-    double maxtime = 1000;
+    double maxtime = 100;
     double record_itv = 0.1;
-    size_t sim_time = 10;
+    size_t sim_time = 5;
     bool boundary = true;
     uint32_t I_single[2] = {400, 200};
     double X_single[4] = {-1, 4, 0, 2};

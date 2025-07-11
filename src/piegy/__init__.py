@@ -23,7 +23,7 @@ from .build_info import build_info
 
 from .simulation import model, run, demo_model, UV_expected_val, check_overflow_func
 from .videos import make_video, SUPPORTED_FIGURES
-from .data_tools import save_data, read_data
+from .data_tools import save, load
 
 from .analysis import rounds_expected, scale_maxtime, check_convergence, combine_sim
 
@@ -38,7 +38,7 @@ simulation_memebers = ['model', 'run', 'demo_model']
 
 videos_members = ['make_video', 'SUPPORTED_FIGURES']
 
-data_members = ['save_data', 'read_data']
+data_members = ['save', 'load']
 
 analysis_members = ['expected_rounds', 'scale_maxtime', 'check_convergence', 'combine_mod']
 

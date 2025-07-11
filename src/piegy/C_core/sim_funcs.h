@@ -122,10 +122,8 @@ static inline double random01() {
  * patch functions
 */
 
-static inline void update_pi_k(patch_t* restrict p, const double* restrict M_start, const double* restrict P_start) {
-    // M_start: start index of patch (i, j)'s matrix
-    // P_start: start index of p's patch variables, i.e., ij * 6
-
+static inline void update_pi_k(patch_t* restrict p) {
+    // update payoff and carrying capacity rates 
     uint32_t U = p->U;
     uint32_t V = p->V;
     double sum = U + V;
@@ -134,13 +132,13 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
 
     if (sum > 0) {
         if (U > 0) {
-            p->U_pi = U_ratio * M_start[0] + V_ratio * M_start[1];
+            p->U_pi = U_ratio * p->X[0] + V_ratio * p->X[1];
         } else {
             p->U_pi = 0.0;
         }
 
         if (V > 0) {
-            p->V_pi = U_ratio * M_start[2] + V_ratio * M_start[3];
+            p->V_pi = U_ratio * p->X[2] + V_ratio * p->X[3];
         } else {
             p->V_pi = 0.0;
         }
@@ -153,8 +151,8 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
     p->pi_death_rates[0] = fabs(U * p->U_pi);
     p->pi_death_rates[1] = fabs(V * p->V_pi);
 
-    p->pi_death_rates[2] = P_start[4] * U * sum;
-    p->pi_death_rates[3] = P_start[5] * V * sum;
+    p->pi_death_rates[2] = p->P[4] * U * sum;
+    p->pi_death_rates[3] = p->P[5] * V * sum;
 
     p->sum_pi_death_rates = 0.0;
     for (size_t i = 0; i < 4; i++) {
@@ -164,14 +162,14 @@ static inline void update_pi_k(patch_t* restrict p, const double* restrict M_sta
 
 
 
-static inline void update_mig_just_rate(patch_t* restrict p, const double* restrict P_start) {
+static inline void update_mig_just_rate(patch_t* restrict p) {
     // update migration weight for patch p, in location loc. Only rate is updated
     // used by last-changed patch, when there is only one last-changed patch
     double* p_U_weight = p->U_weight;
     double* p_V_weight = p->V_weight;
 
-    double mu1_U = P_start[0] * p->U;
-    double mu2_V = P_start[1] * p->V;
+    double mu1_U = p->P[0] * p->U;
+    double mu2_V = p->P[1] * p->V;
     
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
@@ -184,7 +182,7 @@ static inline void update_mig_just_rate(patch_t* restrict p, const double* restr
 }
 
 
-static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* P_start, uint8_t loc) {
+static inline uint8_t update_mig_weight_rate(patch_t* restrict p, uint8_t loc) {
     // update migration weight as well as rates, in one direction
     // used by neighbors of last-changed patches
     // also used by last-changed patches themselve, when there are two patch changed, to update mig rates of in each other's direction
@@ -196,8 +194,8 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* 
     p->sum_U_weight -= p_U_weight[loc];
     p->sum_V_weight -= p_V_weight[loc];
 
-    double w1_Upi = P_start[2] * nbi->U_pi;
-    double w2_Vpi = P_start[3] * nbi->V_pi;
+    double w1_Upi = p->P[2] * nbi->U_pi;
+    double w2_Vpi = p->P[3] * nbi->V_pi;
     if (w1_Upi > EXP_OVERFLOW_BOUND) {
         return SIM_OVERFLOW;
     }
@@ -226,8 +224,8 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* 
     p->sum_U_weight += p_U_weight[loc];
     p->sum_V_weight += p_V_weight[loc];
 
-    double mu1_U = P_start[0] * (double)p->U;
-    double mu2_V = P_start[1] * (double)p->V;
+    double mu1_U = p->P[0] * p->U;
+    double mu2_V = p->P[1] * p->V;
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
@@ -242,7 +240,7 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const double* 
 
 
 
-static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_start) {
+static inline uint8_t init_mig(patch_t* restrict p) {
     // update migration rate for all directions
 
     double* p_U_weight = p->U_weight;
@@ -251,8 +249,8 @@ static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_sta
     p->sum_U_weight = 0.0;
     p->sum_V_weight = 0.0;
 
-    double w1 = P_start[2];
-    double w2 = P_start[3];
+    double w1 = p->P[2];
+    double w2 = p->P[3];
 
     for (uint8_t i = 0; i < 4; i++) {
         patch_t* nbi = p->nb[i];
@@ -274,8 +272,8 @@ static inline uint8_t init_mig(patch_t* restrict p, const double* restrict P_sta
         }
     }
 
-    double mu1_U = P_start[0] * (double)p->U;
-    double mu2_V = P_start[1] * (double)p->V;
+    double mu1_U = p->P[0] * p->U;
+    double mu2_V = p->P[1] * p->V;
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
@@ -367,6 +365,7 @@ static inline void find_patch(patch_picked_t* restrict picked, double expected_s
     double current_sum = 0;
     size_t row = 0;
     size_t col = 0;
+    size_t row_M = 0;
 
     // Find row
     if (N != 1) {
@@ -388,9 +387,8 @@ static inline void find_patch(patch_picked_t* restrict picked, double expected_s
             }
             row++;
         }
+        row_M = row * M;
     }
-
-    size_t row_M = row * M;
 
     // Find col in that row
     if ((expected_sum - current_sum) < sum_rates_by_row[row] * 0.5) {
@@ -496,9 +494,6 @@ static inline void make_signal_zero_flux(size_t i, size_t j, uint8_t e, signal_t
             signal->e2 = 3;
             signal->rela_loc = MIG_RIGHT;
             return;
-        //default:
-        //    fprintf(stderr, "Bug: invalid case in make_signal_zf, i, j, e: %zu, %zu, %hhu\n", i, j, e);
-        //    return;
     }
 }
 
@@ -582,9 +577,6 @@ static inline void make_signal_periodical(size_t N, size_t M, size_t i, size_t j
             signal->e2 = 3;
             signal->rela_loc = MIG_RIGHT;
             return;
-        //default:
-        //    fprintf(stderr, "Bug: invalid case in make_signal_pr, i, j, e: %zu, %zu, %hhu\n", i, j, e);
-        //    return;
     }
 }
 

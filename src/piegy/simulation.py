@@ -176,7 +176,7 @@ class model:
                                     # if set to an int, say 20, mod will take average over every 20 data points and save them as new data.
                                     # May be used over and over again to recursively reduce data size. 
                                     # Default is 1, not to take average.
-        self.U = None               # initialized by simulation.run or data_tools.read_data
+        self.U = None               # initialized by simulation.run or data_tools.load
         self.V = None
         self.Upi = None
         self.Vpi = None
@@ -426,10 +426,10 @@ def run(mod, message = ""):
     P = np.ascontiguousarray(mod.P.flatten(), dtype = np.float64)
 
     mod_c = model_c()
-    success = LIB.mod_init(ctypes.byref(mod_c), 
+    init_sucess = LIB.mod_init(ctypes.byref(mod_c), 
                            mod.N, mod.M, mod.maxtime, mod.record_itv, mod.sim_time, mod.boundary,
                            I, X, P, mod.print_pct, mod.seed)
-    if not success:
+    if not init_sucess:
         LIB.mod_free_py(ctypes.byref(mod_c))
         del mod_c
         raise RuntimeError('Model initialization failed')

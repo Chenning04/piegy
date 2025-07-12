@@ -17,9 +17,6 @@ void patch_init(patch_t* p, uint32_t U, uint32_t V, size_t row, size_t col, doub
 
     memcpy(p->X, X_start, 4 * sizeof(double));
     memcpy(p->P, P_start, 6 * sizeof(double));
-    for (size_t i = 0; i < 6; i++) {
-        p->P[i] = P_start[i];
-    }
 
     for (size_t i = 0; i < 4; i++) {
         p->U_weight[i] = 0;

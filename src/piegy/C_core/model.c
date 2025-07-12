@@ -79,17 +79,16 @@ void mod_free(model_t* mod) {
 
 void mod_free_py(model_t* mod) {
     // free function for python
-
+    // the same as mod_free except for not having free(mod)
     if (!mod) return;
-    if (mod->I) { free(mod->I); }
-    if (mod->X) { free(mod->X); }
-    if (mod->P) { free(mod->P); }
-    if (mod->U1d) { free(mod->U1d); }
-    if (mod->V1d) { free(mod->V1d); }
-    if (mod->Upi_1d) { free(mod->Upi_1d); }
-    if (mod->Vpi_1d) { free(mod->Vpi_1d); }
-    // if (mod) { free(mod); }
 
+    free(mod->I);
+    free(mod->X);
+    free(mod->P);
+    free(mod->U1d);
+    free(mod->V1d);
+    free(mod->Upi_1d);
+    free(mod->Vpi_1d);
     mod->I = NULL;
     mod->X = mod->P = mod->U1d = mod->V1d = mod->Upi_1d = mod->Vpi_1d = NULL;
 }

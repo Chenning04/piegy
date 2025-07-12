@@ -1,4 +1,4 @@
-__version__ = '2.3.8'
+__version__ = '2.3.9'
 
 '''
 version history:
@@ -45,4 +45,5 @@ version history:
 2.3.6: index error due to reduced accuracy is now explicitly handled.
 2.3.7: update migration rules on the boundary. mu values are scaled based on how many neighbors a patch has. Minor debugging in several modules.
 2.3.8: bug fix for 2.3.7 update.
+2.3.9: now use xoshiro256+ as RNG.
 '''

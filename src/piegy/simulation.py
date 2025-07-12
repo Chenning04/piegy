@@ -164,22 +164,11 @@ class model:
         if check_overflow:
             check_overflow_func(self)
 
-        self.init_storage()             # initialize storage bins. Put in a separate function because might want to change maxtime 
-                                        # and that doesn't need to initialze the whole object again
+        # initialize storage bins.
+        self.set_data(data_empty = True, max_record = int(maxtime / record_itv), compress_itv = 1, 
+                      U = None, V = None, Upi = None, Vpi = None)
 
 
-    def init_storage(self):
-        # initialize storage bins
-        self.data_empty = True      # whether data storage bins are empty. model.run will refuse to run (raise error) if not empty.
-        self.max_record = int(self.maxtime / self.record_itv)   # int, how many data points to store sin total
-        self.compress_itv = 1       # int, intended to reduce size of data (if not 1). Updated by compress_data function
-                                    # if set to an int, say 20, mod will take average over every 20 data points and save them as new data.
-                                    # May be used over and over again to recursively reduce data size. 
-                                    # Default is 1, not to take average.
-        self.U = None               # initialized by simulation.run or data_tools.load
-        self.V = None
-        self.Upi = None
-        self.Vpi = None
 
 
     def check_valid_input(self, N, M, maxtime, record_itv, sim_time, boundary, I, X, P, print_pct, seed, check_overflow):
@@ -319,6 +308,8 @@ class model:
 
         if copy_data:
             # copy data as well
+            if self.data_empty:
+                print("Warning: model has empty data")
             sim2.set_data(self.data_empty, self.max_record, self.compress_itv, self.U, self.V, self.Upi, self.Vpi)
 
         return sim2

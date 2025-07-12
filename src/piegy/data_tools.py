@@ -12,6 +12,7 @@ from . import simulation
 import json
 import gzip
 import os
+import numpy as np
 
 
 def save(mod, dirs = '', print_msg = True):
@@ -46,7 +47,6 @@ def save(mod, dirs = '', print_msg = True):
     inputs.append(mod.P.tolist())
     inputs.append(mod.print_pct)
     inputs.append(mod.seed)
-    inputs.append(mod.check_overflow)
     data.append(inputs)
 
     # skipped rng
@@ -54,11 +54,17 @@ def save(mod, dirs = '', print_msg = True):
     outputs = []
     outputs.append(mod.max_record)
     outputs.append(mod.compress_itv)
-    outputs.append(mod.U.tolist())
-    outputs.append(mod.V.tolist())
-    outputs.append(mod.Upi.tolist())
-    outputs.append(mod.Vpi.tolist())
-    # H&Vpi_total are not saved, will be calculated when reading the data
+    if not mod.data_empty:
+        outputs.append(mod.U.tolist())
+        outputs.append(mod.V.tolist())
+        outputs.append(mod.Upi.tolist())
+        outputs.append(mod.Vpi.tolist())
+    else:
+        outputs.append(None)
+        outputs.append(None)
+        outputs.append(None)
+        outputs.append(None)
+
     data.append(outputs)
 
     data_dirs = os.path.join(dirs, 'data.json.gz')
@@ -96,16 +102,19 @@ def load(dirs):
         try:
             mod = simulation.model(N = data[0][0], M = data[0][1], maxtime = data[0][2], record_itv = data[0][3],
                                 sim_time = data[0][4], boundary = data[0][5], I = data[0][6], X = data[0][7], P = data[0][8], 
-                                print_pct = data[0][9], seed = data[0][10], check_overflow = data[0][11])
+                                print_pct = data[0][9], seed = data[0][10], check_overflow = False)
         except:
-            raise ValueError('Invalid input parameters saved in data')
+            raise ValueError('Invalid input parameters stored in data')
 
         # outputs
         try:
             mod.set_data(data_empty = False, max_record = data[1][0], compress_itv = data[1][1], 
                         U = data[1][2], V = data[1][3], Upi = data[1][4], Vpi = data[1][5])
+            if (mod.U is None) or (isinstance(mod.U, np.ndarray) and mod.U.shape == () and mod.U.item() is None):
+                # if data is None
+                mod.data_empty = True
         except:
-            raise ValueError('Invalid model results saved in data')
+            raise ValueError('Invalid simulation results stored in data')
     
     return mod
 

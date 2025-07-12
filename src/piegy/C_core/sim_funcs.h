@@ -15,11 +15,11 @@
 
 #include "patch.h"
 #include "model.h"
+#include "random.h"
 
 
 
-// upper bound for RNG is 2^30 + 1
-#define RAND_UPPER_PLUS_2 (double) ((1LL << 30) + 1)
+
 
 // directions of migration
 // so that 3 - mig_dir = reflection of it. Used to track neighbors
@@ -54,8 +54,6 @@
 // how frequent to update rates & sum of rates in single test (recalculate)
 #define UPDATE_SUM_ROUNDS_SM 100  // small, more frequent if some rate is larger than ACCURATE_BOUND
 #define UPDATE_SUM_ROUNDS_LG 10000
-
- 
 
 
 /**
@@ -106,19 +104,6 @@ uint8_t run(model_t* restrict mod, char* message, size_t msg_len);
 
 
 /**
- * Inline Functions
-*/
-
-static inline double random01() {
-    // generate a 24 bit random int, then convert to a (0, 1) ranged double
-    uint32_t r1 = rand() & 0x7fff;  // RAND_MAX is different across machines, ensure 15 bits
-    uint32_t r2 = rand() & 0x7fff;
-
-    double r_combined = (r1  << 15) + r2;
-    return (r_combined + 1) / RAND_UPPER_PLUS_2;
-}
-
-/**
  * patch functions
 */
 
@@ -127,10 +112,10 @@ static inline void update_pi_k(patch_t* restrict p) {
     uint32_t U = p->U;
     uint32_t V = p->V;
     double sum = U + V;
-    double U_ratio = U / sum;
-    double V_ratio = V / sum;
 
     if (sum > 0) {
+        double U_ratio = U / sum;
+        double V_ratio = V / sum;
         if (U > 0) {
             p->U_pi = U_ratio * p->X[0] + V_ratio * p->X[1];
         } else {
@@ -182,7 +167,7 @@ static inline void update_mig_just_rate(patch_t* restrict p) {
 }
 
 
-static inline uint8_t update_mig_weight_rate(patch_t* restrict p, uint8_t loc) {
+static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const uint8_t loc) {
     // update migration weight as well as rates, in one direction
     // used by neighbors of last-changed patches
     // also used by last-changed patches themselve, when there are two patch changed, to update mig rates of in each other's direction
@@ -288,7 +273,7 @@ static inline uint8_t init_mig(patch_t* restrict p) {
 
 
 
-static inline uint8_t find_event(const patch_t* restrict p, double expected_sum) {
+static inline uint8_t find_event(const patch_t* restrict p, const double expected_sum) {
     size_t event = 0;
     double current_sum;
 
@@ -318,7 +303,7 @@ static inline uint8_t find_event(const patch_t* restrict p, double expected_sum)
 }
 
 
-static inline void change_popu(patch_t* restrict p, uint8_t s) {
+static inline void change_popu(patch_t* restrict p, const uint8_t s) {
     switch (s) {
         case 0:
             // Migration IN for U
@@ -360,8 +345,8 @@ static inline void change_popu(patch_t* restrict p, uint8_t s) {
  * Main Simulation Functions
 */
 
-static inline void find_patch(patch_picked_t* restrict picked, double expected_sum, 
-                                const double* restrict patch_rates, const double* restrict sum_rates_by_row, double sum_rates, size_t N, size_t M) {
+static inline void find_patch(patch_picked_t* restrict picked, const double expected_sum, 
+                                const double* restrict patch_rates, const double* restrict sum_rates_by_row, const double sum_rates, const size_t N, const size_t M) {
     double current_sum = 0;
     size_t row = 0;
     size_t col = 0;
@@ -416,7 +401,10 @@ static inline void find_patch(patch_picked_t* restrict picked, double expected_s
 
 
 
-static inline void make_signal_zero_flux(size_t i, size_t j, uint8_t e, signal_t* restrict signal) {
+static inline void make_signal_zero_flux(const size_t N, const size_t M, const size_t i, const size_t j, const uint8_t e, signal_t* restrict signal) {
+    // pass in N & M as well to match the param set of make_signal_periodical
+    (void) N;
+    (void) M;
     // this is always the case for the first one
     signal->i1 = i;
     signal->j1 = j;
@@ -499,7 +487,7 @@ static inline void make_signal_zero_flux(size_t i, size_t j, uint8_t e, signal_t
 
 
 
-static inline void make_signal_periodical(size_t N, size_t M, size_t i, size_t j, uint8_t e, signal_t* restrict signal) {
+static inline void make_signal_periodical(const size_t N, const size_t M, const size_t i, const size_t j, const uint8_t e, signal_t* restrict signal) {
     // this is always the case for the first one
     signal->i1 = i;
     signal->j1 = j;

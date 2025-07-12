@@ -6,6 +6,8 @@
 #include "model.h"
 #include "patch.h"
 #include "sim_funcs.h"
+//#include "random.h"
+
 
 
 int main() {
@@ -46,8 +48,65 @@ int main() {
     mod_init(mod, N, M, maxtime, record_itv, sim_time, boundary, I, X, P, print_pct, seed);
 
     char message[20] = "";  // writable buffer with enough space
-    uint8_t result = run(mod, message, 20);
-    
+    //uint8_t result = run(mod, message, 20);
+
+    /*rand_init((uint64_t) 123456789);
+    size_t how_many = 100000000000;
+    double max = 0;
+    double min = 1;
+
+    size_t groups[10] = {0};
+
+    for (size_t i = 0; i < how_many; i++) {
+        double r = random01();
+        if (r > max) {
+            max = r;
+        } else if (r < min) {
+            min = r;
+        }
+
+        uint8_t r_int = r * 10;
+        if (r_int > 9) r_int = 9;
+        switch (r_int) {
+            case 9:
+                groups[9] += 1;
+                break;
+            case 8:
+                groups[8] += 1;
+                break;
+            case 7:
+                groups[7] += 1;
+                break;
+            case 6:
+                groups[6] += 1;
+                break;
+            case 5:
+                groups[5] += 1;
+                break;
+            case 4:
+                groups[4] += 1;
+                break;
+            case 3:
+                groups[3] += 1;
+                break;
+            case 2:
+                groups[2] += 1;
+                break;
+            case 1:
+                groups[1] += 1;
+                break;
+            default:
+                groups[0] += 1;
+                break;
+        }
+    }
+    fprintf(stdout, "max is %.17f\n", max);
+    fprintf(stdout, "min is %.17f\n", min);
+
+    for (size_t i = 0; i < 10; i++) {
+        fprintf(stdout, "%.10f\n", ((double) groups[i]) / (double) how_many);
+    }*/
+
     /*for (size_t i = 0; i < mod->max_record; i++) {
         fprintf(stdout, "%f ", mod->U1d[i]);
     }

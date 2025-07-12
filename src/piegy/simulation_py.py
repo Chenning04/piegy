@@ -93,7 +93,13 @@ class patch:
     def set_nb_pointers(self, nb):
         # nb is a list of pointers (point to patches)
         # nb is passed from the model class
+        nb_count = 0
+        for nb_i in nb:
+            if nb_i != None:
+                nb_count += 1
         self.nb = nb
+        self.mu1 *= (0.25 * nb_count)
+        self.mu2 *= (0.25 * nb_count)
     
     
     def update_pi_k(self):
@@ -101,19 +107,21 @@ class patch:
 
         U = self.U  # bring the values to front
         V = self.V
-        sum_minus_1 = U + V - 1  # this value is used several times
+        sum_UV = U + V  # this value is used several times
         
-        if sum_minus_1 > 0:
+        if sum_UV > 0:
             # interaction happens only if there is more than 1 individual
+            U_ratio = U / sum_UV
+            V_ratio = V / sum_UV
             
             if U != 0:
                 # no payoff if U == 0
-                self.Upi = (U - 1) / sum_minus_1 * self.matrix[0] + V / sum_minus_1 * self.matrix[1]
+                self.Upi = U_ratio * self.matrix[0] + V_ratio * self.matrix[1]
             else:
                 self.Upi = 0
                 
             if V != 0:
-                self.Vpi = U / sum_minus_1 * self.matrix[2] + (V - 1) / sum_minus_1 * self.matrix[3]
+                self.Vpi = U_ratio * self.matrix[2] + V_ratio * self.matrix[3]
             else:
                 self.Vpi = 0
                 
@@ -127,8 +135,8 @@ class patch:
         self.pi_death_rates[1] = abs(V * self.Vpi)
 
         # update natural death rates
-        self.pi_death_rates[2] = self.kappa1 * U * (sum_minus_1 + 1)
-        self.pi_death_rates[3] = self.kappa2 * V * (sum_minus_1 + 1)
+        self.pi_death_rates[2] = self.kappa1 * U * sum_UV
+        self.pi_death_rates[3] = self.kappa2 * V * sum_UV
 
         # update sum of rates
         self.sum_pi_death_rates = sum(self.pi_death_rates)
@@ -143,8 +151,8 @@ class patch:
 
         for i in range(4):
             if self.nb[i] != None:
-                U_weight[i] = 1 + pow(math.e, self.w1 * self.nb[i].Upi)
-                V_weight[i] = 1 + pow(math.e, self.w2 * self.nb[i].Vpi)
+                U_weight[i] = pow(math.e, self.w1 * self.nb[i].Upi)
+                V_weight[i] = pow(math.e, self.w2 * self.nb[i].Vpi)
 
         mu1_U = self.mu1 * self.U
         mu2_V = self.mu2 * self.V
@@ -746,7 +754,7 @@ def single_test(mod, front_info, end_info, update_sum_frequency, rng):
 
 
 
-def run_py(mod, predict_runtime = False, message = ''):
+def run(mod, predict_runtime = False, message = ''):
     '''
     Main function. Recursively calls single_test to run many models and then takes the average.
 

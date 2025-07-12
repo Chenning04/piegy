@@ -144,7 +144,7 @@ static double single_init(const model_t* restrict mod, patch_t* restrict world, 
 
     // make signal
     if (mod->boundary) {
-        make_signal_zero_flux(picked_p->i, picked_p->j, e0, sig_p); 
+        make_signal_zero_flux(N, M, picked_p->i, picked_p->j, e0, sig_p); 
     } else {
         make_signal_periodical(N, M, picked_p->i, picked_p->j, e0, sig_p);
     }
@@ -205,6 +205,14 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
     size_t curr_update_sum_round = 0;  // current round
     size_t update_sum_freq = UPDATE_SUM_ROUNDS_SM;  // recalculate sum every this many rounds
 
+    // set make_signal function based on boundary conditions
+    void (*make_signal)(size_t, size_t, size_t, size_t, uint8_t, signal_t*);
+    if (mod->boundary) {
+        make_signal = &make_signal_zero_flux;
+    } else {
+        make_signal = &make_signal_periodical;
+    }
+
     // core containers
     patch_t* world = (patch_t*) calloc(NM, sizeof(patch_t));
     size_t* nb_indices = (size_t*) calloc(NM * 4, sizeof(size_t));
@@ -261,10 +269,11 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
                 uint8_t curr_prog = (uint8_t)(time * 100 / maxtime);
                 if (curr_prog < 10) {
                     fprintf(stdout, "\r%s: %d %%", message, (int)(time * 100 / maxtime));
+                    fflush(stdout);
                 } else {
                     fprintf(stdout, "\r%s: %d%%", message, (int)(time * 100 / maxtime));
+                    fflush(stdout);
                 }
-                fflush(stdout);
                 //fprintf(stdout, "\n99: %d, %d, %f, %f\n100: %d, %d, %f, %f\n", 
                 //world[98].U, world[98].V, world[98].mig_rates[3], world[98].mig_rates[7], world[99].U, world[99].V, world[99].mig_rates[2], world[99].mig_rates[6]);
                 //fflush(stdout);
@@ -405,11 +414,7 @@ static uint8_t single_test(model_t* restrict mod, char* message) {
         }
 
         // make signal
-        if (boundary) {
-            make_signal_zero_flux(picked.i, picked.j, e0, &signal);
-        } else {
-            make_signal_periodical(N, M, picked.i, picked.j, e0, &signal);
-        }
+        (*make_signal)(N, M, picked.i, picked.j, e0, &signal);
         signal.ij1 = signal.i1 * M + signal.j1;
         signal.ij2 = signal.i2 * M + signal.j2;
 
@@ -498,15 +503,9 @@ uint8_t run(model_t* restrict mod, char* message, size_t msg_len) {
 
     // initialize random
     if (mod->seed != -1) {
-        srand((uint32_t) mod->seed);
+        rand_init((uint64_t) mod->seed);
     } else {
-        srand(time(NULL));
-    }
-
-    if (mod->seed == -1){
-        srand(time(NULL));
-    } else {
-        srand(mod->seed);
+        rand_init((uint64_t) time(NULL));
     }
 
     if (mod->print_pct == 0) {

@@ -25,7 +25,7 @@ from .simulation import model, run, demo_model, UV_expected_val, check_overflow_
 from .videos import make_video, SUPPORTED_FIGURES
 from .data_tools import save, load
 
-from .analysis import rounds_expected, scale_maxtime, check_convergence, combine_sim
+from .analysis import rounds_expected, scale_maxtime, check_convergence, combine_mod
 
 from .figures import (UV_hmap, UV_bar, UV_dyna, UV_hist, UV_std, UV_expected, 
                       pi_hmap, pi_bar, pi_dyna, pi_hist, pi_std, UV_pi, video_fig)

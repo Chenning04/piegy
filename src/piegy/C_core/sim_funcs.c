@@ -499,14 +499,13 @@ uint8_t run(model_t* restrict mod, char* message, size_t msg_len) {
 
     double start = clock();
 
-    mod->data_empty = false;
-
     // initialize random
     if (mod->seed != -1) {
-        rand_init((uint64_t) mod->seed);
+        rand_init((uint64_t) (mod->seed));
     } else {
         rand_init((uint64_t) time(NULL));
     }
+    mod->data_empty = false;
 
     if (mod->print_pct == 0) {
         mod->print_pct = 5;  // default print_pct

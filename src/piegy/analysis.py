@@ -3,9 +3,9 @@ This file contains pre-processing, post-processing, and analytical tools for sim
 
 Public Funcions:
 - check_convergence:    Check whether a simulation result converges. i.e. whether U, V's fluctuation are very small.
-- combine_sim:          Combine two model objects and return a new one (the first two unchanged).
+- combine_mod:          Combine two model objects and return a new one (the first two unchanged).
                         Intended usage: say you have mod1, mod2 with same parameters except for sim_time, say 10 and 20.
-                                        Then combine_sim takes a weighted average (with ratio 1:2) of results and return a new sim3.
+                                        Then combine_mod takes a weighted average (with ratio 1:2) of results and return a new sim3.
                                         So that you now have sim3 with 30 sim_time.
 
 Private Functions:
@@ -170,11 +170,11 @@ def check_convergence(mod, interval = 20, start = 0.8, fluc = 0.07):
 
 
 
-def combine_sim(mod1, mod2):
+def combine_mod(mod1, mod2):
     '''
     Combine data of mod1 and mod2. 
     Intended usage: assume mod1 and mod2 has the same N, M, maxtime, interval, boundary, max_record, and I, X, P
-    combine_sim then combines the two results and calculate a new weighted average of the two data, return a new sim object. 
+    combine_mod then combines the two results and calculate a new weighted average of the two data, return a new sim object. 
     Essentially allows breaking up many rounds of simulations into several smaller pieces, and then put together.
 
     Inputs:
@@ -183,9 +183,9 @@ def combine_sim(mod1, mod2):
 
     Returns:
 
-    - sim3:     a new model object whose U, V, Upi, Vpi are weighted averages of mod1 and mod2
+    - mod3:     a new model object whose U, V, Upi, Vpi are weighted averages of mod1 and mod2
                 (weighted by sim_time). 
-                sim3.print_pct is set to mod1's, seed set to None, sim_time set to sum of mod1's and mod2's. All other params same as mod1
+                mod3.print_pct is set to mod1's, seed set to None, sim_time set to sum of mod1's and mod2's. All other params same as mod1
     '''
     if not (mod1.N == mod2.N and
             mod1.M == mod2.M and
@@ -193,7 +193,6 @@ def combine_sim(mod1, mod2):
             mod1.record_itv == mod2.record_itv and
             mod1.boundary == mod2.boundary and
             mod1.max_record == mod2.max_record and
-            np.array_equal(mod1.I, mod2.I) and
             np.array_equal(mod1.X, mod2.X) and
             np.array_equal(mod1.P, mod2.P)):
         
@@ -204,19 +203,19 @@ def combine_sim(mod1, mod2):
     
     # copy mod1, except for no data and a different sim_time
     combined_sim_time = mod1.sim_time + mod2.sim_time
-    sim3 = mod1.copy(copy_data = False)
-    sim3.sim_time = combined_sim_time
-    sim3.seed = None
+    mod3 = mod1.copy(copy_data = False)
+    mod3.sim_time = combined_sim_time
+    mod3.seed = None
 
-    for i in range(sim3.N):
-        for j in range(sim3.M):
-            for k in range(sim3.max_record):
-                sim3.U[i][j][k] = (mod1.U[i][j][k] * mod1.sim_time + mod2.U[i][j][k] * mod2.sim_time) / combined_sim_time
-                sim3.V[i][j][k] = (mod1.V[i][j][k] * mod1.sim_time + mod2.V[i][j][k] * mod2.sim_time) / combined_sim_time
-                sim3.Upi[i][j][k] = (mod1.Upi[i][j][k] * mod1.sim_time + mod2.Upi[i][j][k] * mod2.sim_time) / combined_sim_time
-                sim3.Vpi[i][j][k] = (mod1.Vpi[i][j][k] * mod1.sim_time + mod2.Vpi[i][j][k] * mod2.sim_time) / combined_sim_time
+    for i in range(mod3.N):
+        for j in range(mod3.M):
+            for k in range(mod3.max_record):
+                mod3.U[i][j][k] = (mod1.U[i][j][k] * mod1.sim_time + mod2.U[i][j][k] * mod2.sim_time) / combined_sim_time
+                mod3.V[i][j][k] = (mod1.V[i][j][k] * mod1.sim_time + mod2.V[i][j][k] * mod2.sim_time) / combined_sim_time
+                mod3.Upi[i][j][k] = (mod1.Upi[i][j][k] * mod1.sim_time + mod2.Upi[i][j][k] * mod2.sim_time) / combined_sim_time
+                mod3.Vpi[i][j][k] = (mod1.Vpi[i][j][k] * mod1.sim_time + mod2.Vpi[i][j][k] * mod2.sim_time) / combined_sim_time
 
-    return sim3
+    return mod3
 
 
 

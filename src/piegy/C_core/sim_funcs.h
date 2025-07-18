@@ -49,11 +49,11 @@
 #define EXP_OVERFLOW_BOUND 500
 
 // Compare current rates with this bound
-#define ACCURATE_BOUND 1LL << 33  // about 8.6 * 10^9
+#define ACCURATE_BOUND 1ULL << 53
 
 // how frequent to update rates & sum of rates in single test (recalculate)
-#define UPDATE_SUM_ROUNDS_SM 100  // small, more frequent if some rate is larger than ACCURATE_BOUND
-#define UPDATE_SUM_ROUNDS_LG 10000
+#define UPDATE_SUM_ROUNDS_SM 100U  // small, more frequent if some rate is larger than ACCURATE_BOUND
+#define UPDATE_SUM_ROUNDS_LG 10000U
 
 
 /**
@@ -159,7 +159,7 @@ static inline void update_mig_just_rate(patch_t* restrict p) {
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; i++) {
         p->mig_rates[i] = mu1_U_divide_sum * p_U_weight[i];
         p->mig_rates[i + 4] = mu2_V_divide_sum * p_V_weight[i];
     }
@@ -214,7 +214,7 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const uint8_t 
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; i++) {
         p->mig_rates[i] = mu1_U_divide_sum * p_U_weight[i];
         p->mig_rates[i + 4] = mu2_V_divide_sum * p_V_weight[i];
     }
@@ -237,7 +237,7 @@ static inline uint8_t init_mig(patch_t* restrict p) {
     double w1 = p->P[2];
     double w2 = p->P[3];
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; i++) {
         patch_t* nbi = p->nb[i];
         if (nbi) {
             // not NULL
@@ -262,7 +262,7 @@ static inline uint8_t init_mig(patch_t* restrict p) {
     double mu1_U_divide_sum = mu1_U / p->sum_U_weight;
     double mu2_V_divide_sum = mu2_V / p->sum_V_weight;
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; i++) {
         p->mig_rates[i] = mu1_U_divide_sum * p_U_weight[i];
         p->mig_rates[i + 4] = mu2_V_divide_sum * p_V_weight[i];
     }

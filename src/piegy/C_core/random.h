@@ -15,7 +15,7 @@
 
 
 // resolution of random01 is 2^-53
-// which is (about) the IEEE 754 double precision
+// which is the IEEE 754 double precision
 #define MAX_53BIT (uint64_t) ((1ULL << 53) - 1)
 #define RAND_DENOM 1.0 / ((double) (1ULL << 53))
 // xor_state
@@ -66,7 +66,7 @@ static inline double random01() {
 
 
 static inline void rand_init(const uint64_t seed) {
-    // initialize PCG random
+    // initialize xorshift RNG
     splitmix64_state = seed;
     for (int i = 0; i < 4; i++) {
         xor_state[i] = Splitmix64_rand();

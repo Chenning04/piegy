@@ -17,15 +17,14 @@ typedef struct patch_t {
     size_t row;
     size_t col;
 
-    uint32_t U;  // store as double directly to avoid runtime conversion (to double)
-    uint32_t V;
+    double U;  // store as double directly to avoid runtime conversion (into double)
+    double V;
     double U_pi;
     double V_pi;
 
     double X[4];  // a copy of matrix and patch variables (mu, w, kappa)
     double P[6];
 
-    struct patch_t* nb[4];
     double U_weight[4];  // stores migration weight of each of the 4 neighbors
     double V_weight[4];
     double sum_U_weight; // sum of U_weight
@@ -34,6 +33,8 @@ typedef struct patch_t {
     double mig_rates[8];
     double sum_pi_death_rates;
     double sum_mig_rates;
+
+    struct patch_t* nb[4];
 } patch_t;
 
 // in .c

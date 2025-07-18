@@ -32,23 +32,23 @@ This module contains analytic tools for simulation results.
 
 |
 
-.. py:function:: analysis.combine_sim(mod1, sim2)
+.. py:function:: analysis.combine_mod(mod1, mod2)
 
     .. line-block::
         Combines the simulation results in two ``piegy.simulation.model`` objects. 
         Intended usage: if the fluctuation of one simulation is too large, you can run another simulation and then take average of the two.
 
-        Raises error if ``sim1`` and ``sim2`` have different ``N``, ``M``, ``maxtime``, ``record_itv``, ``boundary``, ``I``, ``X``, or ``P`` (can't combine two different models).
+        Raises error if ``mod1`` and ``mod2`` have different ``N``, ``M``, ``maxtime``, ``record_itv``, ``boundary``, ``I``, ``X``, or ``P`` (can't combine two different models).
 
-        Raises error if ``sim1`` and ``sim2`` have the same seed: can't reduce randomness if models used the same random seed.
+        Raises error if ``mod1`` and ``mod2`` have the same seed: can't reduce randomness if models used the same random seed.
 
-    :param sim1: the first simulation.
+    :param mod1: the first simulation.
     :type mod: ``piegy.simulation.model`` object
 
-    :param sim2: the second simulation.
+    :param mod2: the second simulation.
     :type mod: ``piegy.simulation.model`` object
 
-    :return: a third model whose parameters are the same as ``sim1`` and ``sim2``, but data are the weighted average of the two (wieghted by the number of rounds each simulation ran)
+    :return: a third model whose parameters are the same as ``mod1`` and ``mod2``, but data are the weighted average of the two (wieghted by the number of rounds each simulation ran)
     :rtype: ``piegy.simulation.model`` object
 
 |
@@ -138,34 +138,34 @@ In terms of actual usage, we recommend the following:
 
 But what about the results that didn't converge? We provide an approach to possibly re-use these results rather than simply discarding them.
 
-* **combine_sim**
+* **combine_mod**
 
-First make a copy of ``sim`` without data, just the parameters. You can see ``copy`` method at :ref:`piegy.simulation.model <simulation>`.
+First make a copy of ``mod`` without data, just the parameters. You can see ``copy`` method at :ref:`piegy.simulation.model <simulation>`.
 
 .. code-block:: python
 
-    sim2 = mod.copy(copy_data = False)
+    mod2 = mod.copy(copy_data = False)
 
-Then change the seed of sim2, set to either ``None`` or a different seed, and run the simulation on ``sim2``:
+Then change the seed of sim2, set to either ``None`` or a different seed, and run the simulation on ``mod2``:
 
 .. code-block:: python
 
     sim2.set_seed(42)  # a different seed or None
     simulation.run(mod2)
 
-Now we have two simulation results, one in ``sim`` and the other one in ``sim2``. Both of them have ``sim_time = 10``, i.e., the simulation was repeated 10 times. 
+Now we have two simulation results, one in ``mod`` and the other one in ``mod2``. Both of them have ``sim_time = 10``, i.e., the simulation was repeated 10 times. 
 But since they have different seeds (or ``None``), we can take average of two simulations and obtain a new result, as if it was ran 20 times:
 
 .. code-block:: python
 
-    sim3 = analysis.combine_sim(mod, sim2)
+    mod3 = analysis.combine_mod(mod, mod2)
 
-``sim3`` has a much more stable result:
+``mod3`` has a much more stable result:
 
 .. figure:: images/analysis/sim3.png
     :width: 80%
 
-    Population Dynamics of ``sim``, ``sim2`` Combined
+    Population Dynamics of ``mod``, ``mod2`` Combined
 
-However, if you try the above convergence tests again, you would note ``sim3`` still fails the strict one. A larger number of repetitions such as ``sim_time = 50`` may pass the test.
+However, if you try the above convergence tests again, you would note ``mod3`` still fails the strict one. A larger number of repetitions such as ``sim_time = 50`` may pass the test.
 

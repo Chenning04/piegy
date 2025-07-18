@@ -10,8 +10,8 @@ void patch_init(patch_t* p, uint32_t U, uint32_t V, size_t row, size_t col, doub
     p->row = row;
     p->col = col;
 
-    p->U = U;
-    p->V = V;
+    p->U = (double) U;
+    p->V = (double) V;
     p->U_pi = 0;
     p->V_pi = 0;
 

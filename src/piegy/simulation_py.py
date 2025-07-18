@@ -151,8 +151,8 @@ class patch:
 
         for i in range(4):
             if self.nb[i] != None:
-                U_weight[i] = pow(math.e, self.w1 * self.nb[i].Upi)
-                V_weight[i] = pow(math.e, self.w2 * self.nb[i].Vpi)
+                U_weight[i] = math.exp(self.w1 * self.nb[i].Upi)
+                V_weight[i] = math.exp(self.w2 * self.nb[i].Vpi)
 
         mu1_U = self.mu1 * self.U
         mu2_V = self.mu2 * self.V

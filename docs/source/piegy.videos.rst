@@ -29,7 +29,7 @@ A list of supported functions is also in this given in ``videos.SUPPORTED_FIGURE
 
 |
 
-.. py:function:: videos.make_video(mod, func_name = 'UV_heatmap', frames = 100, dpi = 200, fps = 30, U_color = 'Greens', V_color = 'Purples', annot = False, fmt = '.3g', del_frames = False, dirs = 'videos')
+.. py:function:: videos.make_video(mod, func_name = 'UV_heatmap', frames = 100, dpi = 200, fps = 30, color_H = 'Greens', color_D = 'Purples', annot = False, fmt = '.3g', del_frames = False, dirs = 'videos')
     
     Makes video to show how some values or distribution change over time. No return value.
 
@@ -48,12 +48,12 @@ A list of supported functions is also in this given in ``videos.SUPPORTED_FIGURE
     :param fps: frames per second.
     :type fps: int
 
-    :param U_color: color for U's video. Can be either matplotlib color maps or regular colors, depending on whether you are making heatmap videos or not.
+    :param color_H: color for U's video. Can be either matplotlib color maps or regular colors, depending on whether you are making heatmap videos or not.
         If ``'heatmap'`` is in ``func_name``, please use color maps. Otherwise use regular colors.
-    :type U_color: str
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param del_frames: whether to delete frames after videos are made.
     :type del_frames: bool
@@ -85,15 +85,15 @@ We will use our :ref:`demo model<Demo_Params>`. You can get a copy by ``piegy.si
 In this demo model, we started from a uniform population distribution and arrived at a rather clustered distribution. 
 For example, the following are the U average distribution at start and end of simulation:
 
-.. figure:: images/demo_model/U_hmap_start.png
+.. figure:: images/H_frame_0.png
     :width: 80%
 
-    Average U distribution in the start, 0% ~ 1% of ``maxtime``
+    Average distribution of hawks (U) at the start of simulation, i.e., 0% ~ 1% of ``maxtime``
 
-.. figure:: images/demo_model/U_hmap_end.png
+.. figure:: images/H_frame_99.png
     :width: 80%
 
-    Average U distribution in the end, 99% ~ 100% of ``maxtime``
+    Average distribution of hawks (U) at the end of simulation, i.e., 99% ~ 100% of ``maxtime``
 
 We can visualize the change in between by videos. Call ``piegy.videos.make_video``:
 

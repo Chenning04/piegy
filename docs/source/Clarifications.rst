@@ -35,7 +35,7 @@ It denotes the length of a "data interval". We take the average value over every
 
 For example, in our :ref:`demo model<demo_params>`, if we make a U, V payoff - time plot without taking any average (i.e., ``interval = 1``), the figure is:
 
-.. figure:: images/demo_model/pi_dyna_1.png
+.. figure:: images/pi_dyna_1.png
     :width: 80%
 
     pi_dyna with interval = 1
@@ -43,7 +43,7 @@ For example, in our :ref:`demo model<demo_params>`, if we make a U, V payoff - t
 .. line-block:: 
     Notice the high local fluctuations. We can smooth out these fluctuations by ``interval``, say set it to 40:
 
-.. figure:: images/demo_model/pi_dyna_40.png
+.. figure:: images/pi_dyna_40.png
     :width: 80%
 
     pi_dyna with interval = 40
@@ -54,18 +54,18 @@ You may notice the x-range is reduced to around 80. That is exactly because we a
 
 .. _compress_data:
 
-``compress_data`` and ``compress_itv``
+``compress_data`` and ``compress_ratio``
 --------------------------------------------
 
 * ``compress_data`` is a class method of ``piegy.simulation.model``. 
-* ``compress_itv``:
+* ``compress_ratio``:
     * parameter for ``compress_data``.
-    * A ``piegy.simulation.model`` object also has ``compress_itv`` has a variable. Stores current ratio of data reduction, initialized as 1 and updated by ``compress_data``.
+    * A ``piegy.simulation.model`` object also has ``compress_ratio`` has a variable. Stores current ratio of data reduction, initialized as 1 and updated by ``compress_data``.
 
 ``compress_data`` is an effort to reduce data size by saving only average values rather than every data point.
 For example, let's look at how many numbers are contained in ``sim`` (our demo model, see parameters at :ref:`Typical Params<Typical_Params>`)
 
-#. We have ``N * M * 12`` input parameters (initial population, matrices, patch variables, etc.)
+#. We have ``N * M * 12`` input parameters (initial population, matrices, patch parameters, etc.)
 #. As for the data generated during simulation, there ``N * M * maxtime / record_itv`` for U's population. That is :math:`10 \cdot 10 \cdot 3000 = 3 \cdot 10^5` in our case.
 #. And similarly for V population, U and V payoff.
 #. So we will be saving about :math:`12 \cdot 10^6` numbers in total --- that's a lot!
@@ -88,40 +88,40 @@ However, the actual size shown in file system is probably not divided by 10. Tha
 The size reduction comes at the expense of:
 
 * The original data are lost; we only have average values now.
-* The new data become coarser as we use larger ``compress_itv``.
+* The new data become coarser as we use larger ``compress_ratio``.
 
 You can call ``compress_data`` repeatedly, and data will become coarser and coarser as well. For example, calling ``mod.compress_data(10)`` again takes average over every :math:`10 \cdot 10` points; essentially the same as ``mod.compress_data(100)``.
 
-You can check the current reduction ratio by printing out ``compress_itv`` variable of ``sim``:
+You can check the current reduction ratio by printing out ``compress_ratio`` variable of ``sim``:
 
 .. code-block:: python
 
-    print(mod.compress_itv)
+    print(mod.compress_ratio)
 
 
 
-.. _interval_compress_itv:
+.. _interval_compress_ratio:
 
-Considerations about ``interval`` and ``compress_itv``
--------------------------------------------------------
+Considerations regarding ``interval`` and ``compress_ratio``
+-------------------------------------------------------------
 
 * Here ``interval`` refers to parameters of functions in ``piegy.figures``, ``piegy.analysis``, ``piegy.test_var``.
-* ``compress_itv`` refers to variable of a ``piegy.simulation.model`` object, which records ratio of data reduction.
+* ``compress_ratio`` refers to variable of a ``piegy.simulation.model`` object, which records ratio of data reduction.
 
-There might be considerations whether ``interval`` and ``compress_itv`` would have conflicts. The answer is **No**.
+There might be considerations whether ``interval`` and ``compress_ratio`` would have conflicts. The answer is **No**.
 
 Our codes are specifically designed to accommodate both two intervals, in the following way:
 
 #. Say ``interval = 10``.
-#. If ``compress_itv`` is 1, then make plots / perform other analysis as they were: take average over every 10 data points and proceed.
-#. If ``compress_itv`` is not 1, scale ``interval`` by:
+#. If ``compress_ratio`` is 1, then make plots / perform other analysis as they were: take average over every 10 data points and proceed.
+#. If ``compress_ratio`` is not 1, scale ``interval`` by:
 
     .. code-block:: python
 
-        interval = int(interval / compress_itv)
+        interval = int(interval / compress_ratio)
 
     and then proceed. So that we will still be taking average over the same number of data points (in terms of the original data).
-#. If ``compress_itv`` is larger than ``interval``, the above code would result in the new ``interval`` being 0. We then set it to 1 and print a warning message: data is coarser than the expected interval.
+#. If ``compress_ratio`` is larger than ``interval``, the above code would result in the new ``interval`` being 0. We then set it to 1 and print a warning message: data is coarser than the expected interval.
 
 
 

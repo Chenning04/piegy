@@ -5,11 +5,11 @@ piegy.data_tools
 
 This section documents the data saving and reading tools.
 
-.. py:function:: data_tools.save_data(mod, dirs = '', print_msg = True)
+.. py:function:: data_tools.save(mod, dirs = '', print_msg = True)
 
     .. line-block::
-        Saves all parameters and data of a model. No return value.
-        Direcotry will be created if does not exist.
+        Saves parameters and data of a model.
+        Direcotries will be created if does not exist.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -22,7 +22,7 @@ This section documents the data saving and reading tools.
 
 |
 
-.. py:function:: data_tools.read_data(dirs)
+.. py:function:: data_tools.load(dirs)
 
     .. line-block::
         Reads and returns a model from a directory.
@@ -41,18 +41,18 @@ Examples
 .. line-block::
     We provide some small examples for ``piegy.data_tools`` functions. 
 
-    First please import the ``piegy.data_tools.save_data`` and ``piegy.data_tools.read_data`` functions:
+    First please import the ``piegy.data_tools.save`` and ``piegy.data_tools.load`` functions:
 
 .. code-block:: python
 
-    from piegy.data_tools import save_data, read_data
+    from piegy.data_tools import save, load
 
 
 Assume you ran simulation on ``sim`` variable (``piegy.simulation.model`` object). Then save ``sim`` at ``some_directory`` directory by:
 
 .. code-block:: python
 
-    save_data(mod, 'some_directory')
+    save(mod, 'some_directory')
 
 ``some_directory`` will be created if it does not exist.
 
@@ -60,7 +60,7 @@ You can read data by:
 
 .. code-block:: python
 
-    sim2 = read_data('some_directory')
+    sim2 = load('some_directory')
 
 Please pass in the same directory name as the one you used to save ``sim``.
 

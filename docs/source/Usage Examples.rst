@@ -11,32 +11,29 @@ This section provides a usage example of the ``piegy`` package.
 .. code-block:: python
 
     from piegy import simulation, figures, videos
-    from piegy.data_tools import save_data, read_data
+    from piegy.data_tools import save, load
     import matplotlib.pyplot as plt
 
 
-We first define the parameters of our model: spatial dimension, payoff matrices, boundary conditions, etc.
-We use U to denote preys, V to predators.
+Let us first define the parameters of our model: spatial dimension, payoff matrices, boundary conditions, etc.
 
 .. code-block:: python
 
-    N = 5               # Number of rows
-    M = 5               # Number of cols
-    maxtime = 300       # how long you want the model to run
-    record_itv = 0.1    # how often to record data.
-    sim_time = 5        # repeat the simulation 5 times
-    boundary = True     # zero-flux boundary condition.
+    N = 10                  # Number of rows
+    M = 10                  # Number of cols
+    maxtime = 100           # how long you want the model to run
+    record_itv = 0.1        # how often to record data.
+    sim_time = 1            # repeat simulation to reduce randomness
+    boundary = True         # boundary condition.
 
     # initial population for the N x M patches. 
-    I = [[[44, 22] for _ in range(M)] for _ in range(N)]
-    
+    init_popu = [[[200, 100] for _ in range(M)] for _ in range(N)]  
     # flattened payoff matrices
-    X = [[[-0.1, 0.4, 0, 0.2] for _ in range(M)] for _ in range(N)]
-    
-    # patch variables
-    P = [[[0.5, 0.5, 200, 200, 0.001, 0.001] for _ in range(M)] for _ in range(N)]
+    matrices = [[[-1, 4, 0, 2] for _ in range(M)] for _ in range(N)]
+    # patch parameters
+    patch_params = [[[1, 1, 10, 10, 0.001, 0.001] for _ in range(M)] for _ in range(N)]
 
-    # seed for random numbers
+    # seed for random number generation
     seed = 36
 
 .. line-block::
@@ -44,7 +41,7 @@ We use U to denote preys, V to predators.
 
 .. code-block:: python
 
-    mod = simulation.model(N, M, maxtime, record_itv, sim_time, boundary, I, X, P, seed = seed)
+    mod = simulation.model(N, M, maxtime, record_itv, sim_time, boundary, init_popu, matrices, patch_params, seed = seed)
     simulation.run(mod)
 
 This might take a while. You can see how much runtime it took after simulation is done.
@@ -58,7 +55,7 @@ Once the simulation completes, we can analyze the results with a wide range of t
 .. line-block::
     You can see the following figure immediately if using a notebook:
 
-.. figure:: images/Example_Usage/min_usage_UV_dyna.png
+.. figure:: images/demo_UV_dyna.png
     :width: 80%
 
     Population Dynamics
@@ -76,7 +73,7 @@ Once the simulation completes, we can analyze the results with a wide range of t
 .. code-block:: python
 
     fig2, ax2 = plt.subplots(2, 1, figsize = (6.4, 9.6))
-    figures.UV_heatmap(mod, ax2[0], ax2[1])
+    figures.UV_hmap(mod, ax2[0], ax2[1])
 
 .. line-block::
     You can save it as well by
@@ -88,7 +85,7 @@ Once the simulation completes, we can analyze the results with a wide range of t
 .. line-block::
     This gives the following population distribution:
 
-.. figure:: images/Example_Usage/min_usage_UV_hmap.png
+.. figure:: images/UV_hmap.png
     :width: 80%
 
     Distribution of U and V population at 95% ~ 100% maxtime
@@ -100,7 +97,7 @@ We can also see how population distribution change over time directly by making 
 
 .. code-block:: python
 
-    videos.make_video(mod, 'UV_heatmap', dirs = 'demo video')
+    videos.make_video(mod, 'UV_hmap', dirs = 'demo video')
 
 .. line-block::
     Then two demo videos will be made and saved at ``./demo video``. Check them out!
@@ -110,7 +107,7 @@ We can also see how population distribution change over time directly by making 
 
 .. code-block:: python
 
-    save_data(mod, dirs = 'demo save')
+    save(mod, dirs = 'demo save')
 
 .. line-block::
     All the paramters and data will be stored in ``./demo save``.
@@ -118,7 +115,7 @@ We can also see how population distribution change over time directly by making 
 
 .. code-block:: python
 
-    sim2 = read_data('demo save')
+    sim2 = load('demo save')
 
 ``sim2`` will be exactly the same as ``sim`` with the same parameters and data.
 

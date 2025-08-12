@@ -112,7 +112,7 @@ int main() {
     }
     fprintf(stdout, "\n");
     for (size_t i = 0; i < mod->max_record; i++) {
-        fprintf(stdout, "%f ", mod->Upi_1d[i]);
+        fprintf(stdout, "%f ", mod->Hpi_1d[i]);
     }*/
     mod_free(mod);
     mod = NULL;

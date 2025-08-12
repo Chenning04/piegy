@@ -14,7 +14,7 @@ pip install piegy
 
 ## Documentation and Source
 
-See source code at: [piegy GitHub-repo](https://github.com/Chenning04/piegy.git). 
+See source code at: [piegy GitHub Repo](https://github.com/Chenning04/piegy.git). 
 The *piegy* documentation at: [piegy Documentation](https://piegy.readthedocs.io/en/). 
 
 ## How the Model Works
@@ -45,7 +45,7 @@ simulation.run(mod)
 fig1, ax1 = plt.subplots()
 figures.UV_dyna(mod, ax1)
 fig2, ax2 = plt.subplots(1, 2, figsize = (12.8, 4.8))
-figures.UV_heatmap(mod, ax2[0], ax2[1])
+figures.UV_hmap(mod, ax2[0], ax2[1])
 ```
 
 The figures reveal population dynamics and steady state population distribution.

@@ -14,10 +14,10 @@ Dynamics Figures
 
 This subsection contains the functions for plotting dynamics of certain values, i.e., how the values change over time, from time t = 0 to maxtime.
 
-.. py:function:: figures.UV_dyna(mod, ax = None, interval = 20, grid = True)
+.. py:function:: figures.UV_dyna(mod, ax = None, interval = 20)
 
     .. line-block::
-        Plot how U, V, and total population change over time.
+        Plot population dynamics of the two species over time, specifically hawk's population ``U``, doves' population ``V``, and total population ``U + V``.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -29,18 +29,15 @@ This subsection contains the functions for plotting dynamics of certain values, 
                     Used to smooth curves. See details at :ref:`Clarifications-interval<interval>`
     :type interval: int
 
-    :param grid: whether to add grid lines to axes.
-    :type grid: bool
-
     :return: a plot of the change of population over time.
     :rtype: matplotlib axes.
 
 |
 
-.. py:function:: figures.pi_dyna(mod, ax = None, interval = 20, grid = True)
+.. py:function:: figures.pi_dyna(mod, ax = None, interval = 20)
 
     .. line-block::
-        Plot change of U, V, and total payoff over time.
+        Plot payoff dynamics of the two species over time, specifically hawk's population ``Hpi``, doves' population ``Vpi``, and total population ``Hpi + Vpi``.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -52,18 +49,15 @@ This subsection contains the functions for plotting dynamics of certain values, 
                     Used to smooth curves. See details at :ref:`Clarifications-interval<interval>`
     :type interval: int
 
-    :param grid: whether to add grid lines to axes.
-    :type grid: bool
-
     :return: a plot of the change of population over time.
     :rtype: matplotlib axes.
 
 |
 
-.. py:function:: figures.UV_std(mod, ax = None, interval = 20, grid = True)
+.. py:function:: figures.UV_std(mod, ax = None, interval = 20)
 
     .. line-block::
-        Plot change of standard deviation of U, V population over time.
+        Plot dynamics of standard deviation of population over time.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -75,18 +69,15 @@ This subsection contains the functions for plotting dynamics of certain values, 
                     Used to smooth curves. See details at :ref:`Clarifications-interval<interval>`
     :type interval: int
 
-    :param grid: whether to add grid lines to axes.
-    :type grid: bool
-
     :return: a plot of the change of population over time.
     :rtype: matplotlib axes.
 
 |
 
-.. py:function:: figures.pi_std(mod, ax = None, interval = 20, grid = True)
+.. py:function:: figures.pi_std(mod, ax = None, interval = 20)
 
     .. line-block::
-        Plot change of standard deviation of U, V payoff over time.
+        Plot dynamics of standard deviation of payoff over time.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -98,33 +89,29 @@ This subsection contains the functions for plotting dynamics of certain values, 
                     Used to smooth curves. See details at :ref:`Clarifications-interval<interval>`
     :type interval: int
 
-    :param grid: whether to add grid lines to axes.
-    :type grid: bool
-
     :return: a plot of the change of population over time.
     :rtype: matplotlib axes.
 
 |
 
-.. py:function:: figures.UV_hist(mod, ax_U = None, ax_V = None, U_color = 'purple', V_color = 'green', start = 0.95, end = 1.0)
+.. py:function:: figures.UV_hist(mod, ax_H = None, ax_D = None, color_H = 'purple', color_D = 'green', start = 0.95, end = 1.0)
 
-    Make two histograms of U, V average population density in a specified time interval.
-    Sometimes it may not be shown in density plots due to matplotlib features.
+    Make two histograms of average population density in a specified time interval.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the histogram of U upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the histogram of U upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the histogram of V upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the histogram of V upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color for the histograms, using regular matplotlib colors.
-    :type U_color: str
+    :param color_H: color for the histograms, using regular matplotlib colors.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
@@ -137,25 +124,24 @@ This subsection contains the functions for plotting dynamics of certain values, 
 
 |
 
-.. py:function:: figures.pi_hist(mod, ax_U = None, ax_V = None, U_color = 'purple', V_color = 'green', start = 0.95, end = 1.0)
+.. py:function:: figures.pi_hist(mod, ax_H = None, ax_D = None, color_H = 'purple', color_D = 'green', start = 0.95, end = 1.0)
 
-    Make two histograms of U, V average payoff density in a specified time interval.
-    Sometimes it may not be shown in density plots due to matplotlib features.
+    Make two histograms of average payoff density in a specified time interval.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the histogram of U payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the histogram of U payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the histogram of V payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the histogram of V payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color for the histograms, using regular matplotlib colors.
-    :type U_color: str
+    :param color_H: color for the histograms, using regular matplotlib colors.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
@@ -173,40 +159,34 @@ Distribution Figures
 This subsection contains the distribution functions, i.e., the average distribution of either population or payoff in a specified time interval.
 
 
-.. _figures_UV_heatmap:
+.. _figures_HV_heatmap:
 
-.. py:function:: figures.UV_heatmap(mod, ax_U = None, ax_V = None, U_color = 'Purples', V_color = 'Greens', start = 0.95, end = 1.0, annot = False, fmt = '.3g')
-
+.. py:function:: figures.UV_heatmap(mod, ax_H = None, ax_D = None, color_H = 'Purples', color_D = 'Greens', start = 0.95, end = 1.0)
+    
     .. line-block::
-        Make two heatmaps for U, V average population distribution in a specified time interval.
-        Intended for the 2D spatial setting, where both ``N`` and ``M`` larger than 1. For 1D space, please use :ref:`UV_bar<figures_UV_bar>`.
+        Make two heatmaps for average population distributions of hawks and doves in a specified time interval.
+        Intended for the 2D spatial setting, where both ``N`` and ``M`` larger than 1. For 1D space, please use :ref:`UV_bar<figures_HV_bar>`.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the heatmap of U population upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the heatmap of U population upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the heatmap of V population upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the heatmap of V population upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color to use for U's heatmap. Uses matplotlib color maps.
-    :type U_color: str
+    :param color_H: color to use for U's heatmap. Uses matplotlib color maps.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
 
     :param end: end of the time interval. Default 1.0 means the interval ends at exactly maxtime. See details of ``start`` and ``end`` at :ref:`Clarifications-start-end<start_end>`.
     :type end: float or int, :math:`\le 1`
-    
-    :param annot: add annotations: show the exact population at each patch, passed to ``seaborn.heatmap`` function.
-    :type annot: bool
-
-    :param fmt: format of the annotation numbers, passed to ``seaborn.heatmap`` function. ``'.3g'`` is for 3 significant digits. Please set ``annot`` = True first and then use ``fmt``.
-    :type fmt: str
 
     :return: two heatmaps of distribution of U, V population.
     :rtype: matplotlib axes.
@@ -215,10 +195,10 @@ This subsection contains the distribution functions, i.e., the average distribut
 
 .. _figures_pi_heatmap:
 
-.. py:function:: figures.pi_heatmap(mod, ax_U = None, ax_V = None, U_color = 'BuPu', V_color = 'YlGn', start = 0.95, end = 1.0, annot = False, fmt = '.3g')
+.. py:function:: figures.pi_heatmap(mod, ax_H = None, ax_D = None, color_H = 'Purples', color_D = 'Greens', start = 0.95, end = 1.0)
 
     .. line-block::
-        Make two heatmaps for U, V average payoff distribution in a specified time interval.
+        Make two heatmaps for average payoff distributions of hawks and doves in a specified time interval.
         Intended for 2D spatial setting, where both ``N`` and ``M`` larger than 1. For 1D space, please use :ref:`pi_bar<figures_pi_bar>`.
 
         Recommend using different colors for population and payoff to avoid confusion.
@@ -226,57 +206,45 @@ This subsection contains the distribution functions, i.e., the average distribut
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the heatmap of U payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the heatmap of U payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the heatmap of V payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the heatmap of V payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color to use for U's heatmap. Uses matplotlib color maps.
-    :type U_color: str
+    :param color_H: color to use for U's heatmap. Uses matplotlib color maps.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
-
-    :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
-    :type start: float or int, :math:`\le 1`
-
-    :param end: end of the time interval. Default 1.0 means the interval ends at exactly maxtime. See details of ``start`` and ``end`` at :ref:`Clarifications-start-end<start_end>`.
-    :type end: float or int, :math:`\le 1`
-    
-    :param annot: add annotations: show the exact population at each patch, passed to ``seaborn.heatmap`` function.
-    :type annot: bool
-
-    :param fmt: format of the annotation numbers, passed to ``seaborn.heatmap`` function. ``'.3g'`` is for 3 significant digits. Please set ``annot`` = True first and then use ``fmt``.
-    :type fmt: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :return: two heatmaps of distribution of U, V population.
     :rtype: matplotlib axes.
 
 |
 
-.. _figures_UV_bar:
+.. _figures_HV_bar:
 
-.. py:function:: figures.UV_bar(mod, ax_U = None, ax_V = None, U_color = 'purple', V_color = 'green', start = 0.95, end = 1.0)
+.. py:function:: figures.UV_bar(mod, ax_H = None, ax_D = None, color_H = 'purple', color_D = 'green', start = 0.95, end = 1.0)
 
     .. line-block::
-        Make two barplots for U, V average population distribution in a specified time interval.
-        Intended for 1D spatial setting, where ``N`` = 1. For 2D space, please use :ref:`UV_heatmap<figures_UV_heatmap>`.
+        Make two heatmaps for average population distributions of hawks and doves in a specified time interval.
+        Intended for 1D spatial setting, where ``N`` = 1. For 2D space, please use :ref:`UV_heatmap<figures_HV_heatmap>`.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the heatmap of U payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the heatmap of U payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the heatmap of V payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the heatmap of V payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
-    :type U_color: str
+    :param color_H: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
@@ -291,10 +259,10 @@ This subsection contains the distribution functions, i.e., the average distribut
 
 .. _figures_pi_bar:
 
-.. py:function:: figures.pi_bar(mod, ax_U = None, ax_V = None, U_color = 'violet', V_color = 'yellowgreen', start = 0.95, end = 1.0)
+.. py:function:: figures.pi_bar(mod, ax_H = None, ax_D = None, color_H = 'violet', color_D = 'yellowgreen', start = 0.95, end = 1.0)
 
     .. line-block::
-        Make two barplots for U, V average population distribution in a specified time interval.
+        Make two heatmaps for average payoff distributions of hawks and doves in a specified time interval.
         Intended for 1D spatial setting, where ``N`` equal to 1. For 2D space, please use :ref:`pi_heatmap<figures_pi_heatmap>`.
 
         Recommend using different colors for population and payoff to avoid confusion.
@@ -302,17 +270,17 @@ This subsection contains the distribution functions, i.e., the average distribut
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the barplot of U population upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the barplot of U population upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the barplot of V population upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the barplot of V population upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
-    :type U_color: str
+    :param color_H: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
@@ -328,26 +296,26 @@ This subsection contains the distribution functions, i.e., the average distribut
 Other Functions
 --------------------
 
-.. py:function:: figures.UV_pi(mod, ax_U = None, ax_V = None, U_color = 'violet', V_color = 'yellowgreen', alpha = 0.25, start = 0.95, end = 1.0)
+.. py:function:: figures.UV_pi(mod, ax_H = None, ax_D = None, color_H = 'violet', color_D = 'yellowgreen', alpha = 0.25, start = 0.95, end = 1.0)
 
     .. line-block::
-        Make a scatter plot for the correlation between average population and average payoff over a specified time interval.
+        Make a scatter plot for the correlation between average population and average payoff across a specified time interval.
         Every point denotes a patch, its x-coord is the patch's population, y-coord is payoff.
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param ax_U: matplotlib axes to plot the corr plot of U population-payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the corr plot of U population-payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_V: matplotlib axes to plot the corr plot of V population-payoff upon. A new axes will be created if ``None`` is given.
-    :type ax_V: matplotlib axes
+    :param ax_D: matplotlib axes to plot the corr plot of V population-payoff upon. A new axes will be created if ``None`` is given.
+    :type ax_D: matplotlib axes
 
-    :param U_color: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
-    :type U_color: str
+    :param color_H: color for the barplots. Note we are not making heatmaps, so please use regular colors rather than color maps.
+    :type color_H: str
 
-    :param V_color: similar to ``U_color``.
-    :type V_color: str
+    :param color_D: similar to ``color_H``.
+    :type color_D: str
 
     :param start: start of the time interval. Default 0.9 means the interval starts from 90% of maxtime. 
     :type start: float or int, :math:`\le 1`
@@ -363,7 +331,7 @@ Other Functions
 
 |
 
-.. py:function:: figures.UV_expected(mod, U_color = 'Purples', V_color = 'Greens', annot = False, fmt = '.3g')
+.. py:function:: figures.UV_expected(mod, color_H = 'Purples', color_D = 'Greens')
 
     .. line-block::
         Calculate and plot expected population of every patch only based on payoff matrices, assuming no migration or any stochastic process. Handles both 1D and 2D case.
@@ -372,17 +340,11 @@ Other Functions
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
 
-    :param U_color: color for U's plot. Please use matplotlib color map if your space is 2D, use regular colors if 1D.
-    :type U_color: str
+    :param color_H: color for U's plot. Please use matplotlib color map if your space is 2D, use regular colors if 1D.
+    :type color_H: str
 
-    :param V_color: same as ``U_color``.
-    :type V_color: str
-
-    :param annot: Used for 2D heatmaps, whether to explicitly show numbers in every patch (add annotations), passed to ``seaborn.heatmap`` function.
-    :type annot: bool
-
-    :param fmt: format of annotations. Default ".3g" is to show 3 significant digits. Passed to ``seaborn.heatmap`` function. Please set ``annot`` = True first and then use ``fmt``.
-    :type fmt: str
+    :param color_D: same as ``color_H``.
+    :type color_D: str
 
     :return: two heatmaps or barplots about the distribution of U, V expected population.
     :rtype: matplotlib figure
@@ -442,14 +404,14 @@ Examples
 .. code-block:: python
 
     fig_UV_dyna, ax_UV_dyna = plt.subplots()
-    figures.UV_dyna(mod, ax_UV_dyna, interval = 10, grid = True)
+    figures.UV_dyna(mod, ax_UV_dyna, interval = 10)
 
 .. line-block::
     ``interval = 10`` means to take average over every 10 data points. See more at :ref:`Clarifications-interval<interval>`.
 
     It gives the following figure:
 
-.. figure:: images/demo_model/UV_dyna.png
+.. figure:: images/UV_dyna.png
     :width: 80%
 
     UV_dyna: Population Dynamics
@@ -460,9 +422,9 @@ Examples
 .. code-block:: python
 
     fig_pi_dyna, ax_pi_dyna = plt.subplots()
-    figures.pi_dyna(mod, ax_pi_dyna, interval = 10, grid = True)
+    figures.pi_dyna(mod, ax_pi_dyna, interval = 10)
 
-.. figure:: images/demo_model/pi_dyna_10.png
+.. figure:: images/pi_dyna_10.png
     :width: 80%
 
     pi_dyna: Payoff Dynamics
@@ -473,9 +435,9 @@ Examples
 .. code-block:: python
 
     fig_pi_dyna40, ax_pi_dyna40 = plt.subplots()
-    figures.pi_dyna(mod, ax_pi_dyna40, interval = 40, grid = True)
+    figures.pi_dyna(mod, ax_pi_dyna40, interval = 40)
 
-.. figure:: images/demo_model/pi_dyna_40.png
+.. figure:: images/pi_dyna_40.png
     :width: 80%
 
     Smoother Payoff Dynamics with ``interval`` = 40
@@ -491,12 +453,12 @@ Call ``piegy.figures.UV_heatmap`` function:
 .. code-block:: python
 
     fig_UV_hmap, ax_UV_hmap = plt.subplots(2, 1, figsize = (6.4, 9.6))
-    figures.UV_heatmap(mod, ax_UV_hmap[0], ax_UV_hmap[1], start = 0.95, end = 1.0)
+    figures.UV_hmap(mod, ax_UV_hmap[0], ax_UV_hmap[1], start = 0.95, end = 1.0)
 
 .. line-block::
     ``start = 0.95`` and ``end = 1.0`` means we are plotting the average distribution over 95% ~ 100% of total time, i.e., the end of simulation.
 
-.. figure:: images/demo_model/UV_hmap.png
+.. figure:: images/UV_hmap.png
     :width: 80%
 
     U & V population Distribution in 95% ~ 100% Total Time
@@ -509,15 +471,15 @@ Call ``piegy.figures.UV_heatmap`` function:
 .. code-block:: python
 
     fig_pi_hmap, ax_pi_hmap = plt.subplots(2, 1, figsize = (6.4, 9.6))
-    figures.pi_heatmap(mod, ax_pi_hmap[0], ax_pi_hmap[1], start = 0.95, end = 1.0)
+    figures.pi_hmap(mod, ax_pi_hmap[0], ax_pi_hmap[1], start = 0.95, end = 1.0)
 
-.. figure:: images/demo_model/pi_hmap.png
+.. figure:: images/pi_hmap.png
     :width: 80%
 
     U & V Payoff Distribution in 95% ~ 100% Total Time
 
 You may notice the correlation between population and payoff: patches with higher population tend to have higher payoff. 
-Let's visualize the correlation with scatter plots. Call ``piegy.figures.UV_pi``:
+Let's visualize the correlation with scatter plots. Call ``piegy.figures.UDpi``:
 
 .. code-block:: python
 
@@ -527,7 +489,7 @@ Let's visualize the correlation with scatter plots. Call ``piegy.figures.UV_pi``
 .. line-block::
     ``alpha`` is used to make points semi-transparent since there are lots of overlaps.
 
-.. figure:: images/demo_model/corr.png
+.. figure:: images/corr.png
     :width: 80%
 
     U and V Population - Payoff Correlation Plot

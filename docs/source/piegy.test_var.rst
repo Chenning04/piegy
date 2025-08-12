@@ -1,11 +1,9 @@
 .. _test_var:
 
 piegy.test_var
-==============
+=======================
 
 This module contains tools to test the influence of one or two patch variables on the simulation results.
-
-"Patch variables" denote the variables in P: mu1, mu2, w1, w2, kappa1, kappa2.
 
 
 Test Functions
@@ -15,12 +13,12 @@ Test Functions
     The two functions below perform tests on one or two patch variables and save data.
     Intended to combine with the plot functions in this module to visualize the results.
 
-.. py:function:: test_var.test_var1(mod, var, values, dirs, compress_itv = 1, scale_maxtime = False, predict_runtime = True)
+.. py:function:: test_var.test_var1(mod, var, values, dirs, compress_ratio = 1, scale_maxtime = False)
 
     .. line-block::
         Test the influence of one patch variable on simulation results. 
         
-        ``test_var1`` makes copies of ``sim`` and changes the patch variable ``var`` to the specified values (in all patches), perform simulations, and then save data. The original ``sim`` is not changed. 
+        ``test_var1`` makes copies of ``mod`` and changes the patch variable ``var`` to the specified values (in all patches), perform simulations, and then save data. The original ``mod`` is not changed. 
 
     :param mod: where the parameters of the model and data are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -34,28 +32,26 @@ Test Functions
     :param dirs: where to save test data. Expect a path to a folder. ``test_var1`` then create subfolders inside ``dirs`` and store data.
     :type dirs: str
 
-    :param compress_itv: used to reduce data size: takes average over every ``'compress_itv'`` many data points when saving. Passed to ``piegy.simulation.model.compress_data`` method.
-    :type compress_itv: int
+    :param compress_ratio: used to reduce data size: takes average over every ``'compress_ratio'`` many data points when saving. Passed to ``piegy.simulation.model.compress_data`` method.
+    :type compress_ratio: int
 
-    :param scale_maxtime: whether to scale ``maxtime`` of tests towards the input ``sim``. Intended to avoid unnecessarily long runtime possibly encountered in tests due to different values.
+    :param scale_maxtime: whether to scale ``maxtime`` of tests towards the input ``mod``. Intended to avoid unnecessarily long runtime possibly encountered in tests due to different values.
     :type scale_maxtime: bool
-
-    :param predict_runtime: whether to predict how long the tests still going to take. Passed to ``piegy.simulation.run`` function.
 
     :return: a list of directories where all test results are stored. One directory corresponds to one value of ``var``.
     :rtype: list of str
 
 |
 
-.. py:function:: test_var.test_var2(mod, var1, var2, values1, values2, dirs, compress_itv = 1, scale_maxtime = False, predict_runtime = True)
+.. py:function:: test_var.test_var2(mod, var1, var2, values1, values2, dirs, compress_ratio = 1, scale_maxtime = False)
 
     .. line-block::
         Test the influence of two patch variables on simulation results.
         Note which variable comes first does make a difference when plotting: var2 will be placed on x-axis, while different values of var1 are represented by different curves.
 
-        ``test_var2`` makes copies of ``sim`` and changes the patch variables ``var1`` and ``var2`` to the specified values (in all patches), perform simulations, and then save data. The original ``sim`` is not changed. 
+        ``test_var2`` makes copies of ``mod`` and changes the patch variables ``var1`` and ``var2`` to the specified values (in all patches), perform simulations, and then save data. The original ``mod`` is not changed. 
 
-    :param mod: where the parameters of the model and data are stored. 
+    :param mod: where the parameters of the model and data are stored.
     :type mod: ``piegy.simulation.model`` object
 
     :param var1: the first variable to test. Expect a string of the variable name, such as ``'mu1'``, ``'kappa1'``.
@@ -73,13 +69,11 @@ Test Functions
     :param dirs: where to save test data. Expect path to a folder. ``test_var2`` then create subfolders inside ``dirs`` and store data.
     :type dirs: str
 
-    :param compress_itv: used to reduce data size: takes average over every ``'compress_itv'`` many data points when saving. Passed to ``piegy.simulation.model.compress_data`` method.
-    :type compress_itv: int
+    :param compress_ratio: used to reduce data size: takes average over every ``'compress_ratio'`` many data points when saving. Passed to ``piegy.simulation.model.compress_data`` method.
+    :type compress_ratio: int
 
-    :param scale_maxtime: whether to scale ``maxtime`` of tests towards the input ``sim``. Intended to avoid unnecessarily long runtime possibly encountered in tests due to different values.
+    :param scale_maxtime: whether to scale ``maxtime`` of tests towards the input ``mod``. Intended to avoid unnecessarily long runtime possibly encountered in tests due to different values.
     :type scale_maxtime: bool
-
-    :param predict_runtime: whether to predict how long the tests still going to take. Passed to ``piegy.simulation.run`` function.
 
     :return: a 2D list of directories where all test results are stored. One directory corresponds to one pair of ``var1`` value and ``var2`` value.
     :rtype: 2D list of str
@@ -87,11 +81,11 @@ Test Functions
 |
 
 Plot Functions
---------------
+--------------------
 
 The following functions help to visualize simulation results.
 
-.. py:function:: test_var.var_UV1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end = 1.0, U_color = 'purple', V_color = 'green')
+.. py:function:: test_var.var_HV1(var, values, var_dirs, ax_H = None, ax_D = None, start = 0.95, end = 1.0, color_H = 'purple', color_D = 'green')
 
     .. line-block::
         Plots how U, V average population over a specified time interval change with different values of a patch variable.
@@ -106,11 +100,11 @@ The following functions help to visualize simulation results.
                     You can get a copy of it by ``piegy.test_var.get_dirs1`` if lost. Data not existing are ignored.
     :type var_dirs: list of str
 
-    :param ax_U: matplotlib axes to plot the change of U population over ``values``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of U population over ``values``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_U: matplotlib axes to plot the change of V population over ``values``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of V population over ``values``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
     :param start: lower bound of the time interval to plot.
     :type start: float
@@ -123,7 +117,7 @@ The following functions help to visualize simulation results.
 
 |
 
-.. py:function:: test_var.var_UV2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, start = 0.95, end = 1.0, U_color = 'viridis', V_color = 'viridis', rgb_alpha = 1)
+.. py:function:: test_var.var_HV2(var1, var2, values1, values2, var_dirs, ax_H = None, ax_D = None, start = 0.95, end = 1.0, color_H = 'viridis', color_D = 'viridis', alpha = 1)
 
     .. line-block::
         Plot how U, V average population over a specified time interval change with different values of two patch variables.
@@ -145,11 +139,11 @@ The following functions help to visualize simulation results.
                     You can get a copy of it by ``piegy.test_var.get_dirs2`` if lost. Data not existing are ignored.
     :type var_dirs: double list of str
 
-    :param ax_U: matplotlib axes to plot the change of U population over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of U population over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_U: matplotlib axes to plot the change of V population over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of V population over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
     :param start: lower bound of the time interval to plot.
     :type start: float
@@ -160,15 +154,15 @@ The following functions help to visualize simulation results.
     :param color: used to set gradient colors for the curves in plots. Expect name of a matplotlib color map.
     :type color: str
 
-    :param rgb_alpha: alpha value in rgb. Used to make points semi-transarent if overlapping.
-    :type rgb_alpha: float
+    :param alpha: alpha value of the color RGB params. Used to make points semi-transarent if overlapping.
+    :type alpha: float
 
     :return: two figures of how U, V payoff change with values of ``var1`` and ``var2``
     :rtype: ``matplotlib`` figures.
 
 |
 
-.. py:function:: test_var.var_pi1(var, values, var_dirs, ax_U = None, ax_V = None, start = 0.95, end = 1.0, U_color = 'violet', V_color  = 'yellowgreen')
+.. py:function:: test_var.var_pi1(var, values, var_dirs, ax_H = None, ax_D = None, start = 0.95, end = 1.0, color_H = 'violet', color_D  = 'yellowgreen')
 
     .. line-block::
         Plots how U, V average payoff over a specified time interval change with different values of a patch variable.
@@ -183,11 +177,11 @@ The following functions help to visualize simulation results.
                     You can get a copy of it by ``piegy.test_var.get_dirs1`` if lost. Data not existing are ignored.
     :type var_dirs: list of str
 
-    :param ax_U: matplotlib axes to plot the change of U payoff over ``values``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of U payoff over ``values``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_U: matplotlib axes to plot the change of V payoff over ``values``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of V payoff over ``values``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
     :param start: lower bound of the time interval to plot.
     :type start: float
@@ -200,7 +194,7 @@ The following functions help to visualize simulation results.
 
 |
 
-.. py:function:: test_var.var_pi2(var1, var2, values1, values2, var_dirs, ax_U = None, ax_V = None, start = 0.95, end = 1.0, U_color = 'viridis', V_color = 'viridis', rgb_alpha = 1)
+.. py:function:: test_var.var_pi2(var1, var2, values1, values2, var_dirs, ax_H = None, ax_D = None, start = 0.95, end = 1.0, color_H = 'viridis', color_D = 'viridis', alpha = 1)
 
     .. line-block::
         Plot how U, V average payoff over a specified time interval change with different values of two patch variables.
@@ -222,11 +216,11 @@ The following functions help to visualize simulation results.
                     You can get a copy of it by ``piegy.test_var.get_dirs2`` if lost. Data not existing are ignored.
     :type var_dirs: double list of str
 
-    :param ax_U: matplotlib axes to plot the change of U payoff over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of U payoff over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
-    :param ax_U: matplotlib axes to plot the change of V payoff over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
-    :type ax_U: matplotlib axes
+    :param ax_H: matplotlib axes to plot the change of V payoff over ``values1`` and ``values2``. A new axes will be created if ``None`` is given.
+    :type ax_H: matplotlib axes
 
     :param start: lower bound of the time interval to plot.
     :type start: float
@@ -237,8 +231,8 @@ The following functions help to visualize simulation results.
     :param color: used to set gradient colors for the curves in plots. Expect name of a matplotlib color map.
     :type color: str
 
-    :param rgb_alpha: alpha value in rgb. Used to make points semi-transarent if overlapping.
-    :type rgb_alpha: float
+    :param alpha: alpha value of the color RGB params. Used to make points semi-transarent if overlapping.
+    :type alpha: float
 
     :return: two figures of how U, V payoff change with values of ``var1`` and ``var2``
     :rtype: ``matplotlib`` figures.
@@ -382,7 +376,7 @@ The directory will be created if not existing.
 
 .. code-block:: python
 
-    dirs = 'some_dirs'
+    dirs = 'test_var_dirs'
     var_dirs = test_var.test_var1(mod, var, values, dirs)
 
 The return value ``var_dirs`` is a list of directories where data are stored. It is structured in a fixed format and tells other functions where to find data.
@@ -396,21 +390,21 @@ outputs:
 
 .. code-block:: text
 
-    ['some_dirs/mu1=0.1', 'some_dirs/mu1=0.3', 'some_dirs/mu1=0.5', 
-     'some_dirs/mu1=0.7', 'some_dirs/mu1=0.9']
+    ['test_var_dirs/mu1=0.1', 'test_var_dirs/mu1=0.3', 'test_var_dirs/mu1=0.5', 
+     'test_var_dirs/mu1=0.7', 'test_var_dirs/mu1=0.9']
 
 
 There are many ways to analyze data, you can either use the figure functions in ``piegy.figures``, implement your own methods, ... 
-But ``piegy.test_var`` module does provide several handy tools. For example, let's try ``test_var.var_UV1``:
+But ``piegy.test_var`` module does provide several handy tools. For example, let's try ``test_var.var_HV1``:
 
 .. code-block:: python
 
     fig_UV, ax_UV = plt.subplots(2, 1, figsize = (6.4, 9.6))
-    test_var.var_UV1(var, values, var_dirs, ax_UV[0], ax_UV[1])
+    test_var.var_HV1(var, values, var_dirs, ax_UV[0], ax_UV[1])
 
 This function plots how U, V equilibrium population change with values of ``mu1``:
 
-.. figure:: images/test_var/mu1_UV.png
+.. figure:: images/mu1_HV.png
     :width: 80%
 
     Change of U and V Population with ``mu1``
@@ -423,16 +417,16 @@ You can also plot change of payoff by ``test_var.var_pi1``:
     test_var.var_pi1(var, values, var_dirs, ax_pi[0], ax_pi[1])
 
 
-.. figure:: images/test_var/mu1_pi.png
+.. figure:: images/mu1_pi.png
     :width: 80%
 
     Change of U and V Payoff with ``mu1``
 
 We observe a roughly decreasing trend here: larger ``mu1`` value tends to decrease population and payoff. 
-It's also noteworthy that our demo model ``sim`` runs the simulation only once: ``mod.sim_time = 1``. 
+It's also noteworthy that our demo model ``mod`` runs the simulation only once: ``mod.sim_time = 1``. 
 So the figures above are probably far from accurate. If we set ``mod.sim_time`` to 20 and try more values of ``mu1``, we could see a clearer trend.
 
-Note all the plot functions above requires ``var_dirs`` (return value of ``test_var.var_UV1``): it tells the functions where to find data. 
+Note all the plot functions above requires ``var_dirs`` (return value of ``test_var.var_HV1``): it tells the functions where to find data. 
 If you want to read from an old set of ``test_var1`` data but don't have the old ``var_dirs`` anymore, you can remake it by ``test_var.get_dirs1`` function. 
 
 ``test_var.get_dirs1`` automatically makes ``var_dirs`` based on what variable, values and the "base directory" ``dirs`` you used. 

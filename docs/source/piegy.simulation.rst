@@ -1,28 +1,27 @@
 .. _simulation:
 
 piegy.simulation
-==================
+========================
 
-This section documents the core of the ``piegy`` package: the stochastic model.
+This section documents the core of the ``piegy`` package: model initialization and stochastic simulation.
 
-To run a simulation, first use the ``simulation`` class to set up a model, then run simulation by ``run`` function.
-
+To run a simulation, first use the ``model`` class to set up a model, then run simulation by ``run`` function. 
 The simulations are computationally intensive. See brief discussion of runtime at :ref:`runtime<runtime>`.
 
 .. _model:
 
-.. py:class:: simulation.model(N, M, maxtime, record_itv, sim_time, boundary, I, X, P, print_pct = 25, seed = None)
+.. py:class:: simulation.model(N, M, maxtime, record_itv, sim_time, boundary, init_popu, matrices, patch_params, print_pct = 50, seed = None)
 
-    A ``simulation`` object contains all the parameters and data storage bins for a model. Initialize such an object to set up your model. 
-    See :ref:`below<IXP_explanation>` for detailed explanation of ``I``, ``X``, ``P`` parameters. 
+    A ``simulation.model`` object contains the parameters and data storage bins for a model. Initialize such an object to set up your model. 
+    See :ref:`below<_patch_vars>` for detailed explanation of ``init_popu``, ``matrices``, ``patch_params`` parameters. 
 
-    :param N: spatial dimension, number of rows of patches.
+    :param N: spatial dimension, number of rows.
     :type N: int
     
     :param M: spatial dimension, number of columns.
     :type M: int
 
-    :param maxtime: how long you want the simulation to run.
+    :param maxtime: how long you wish the simulation to run.
     :type maxtime: float or int
 
     :param record_itv: record interval. Stores data every ``record_itv`` of time. Smaller values give finer data but also take more space.
@@ -31,17 +30,17 @@ The simulations are computationally intensive. See brief discussion of runtime a
     :param boundary: boundary condition. ``True`` for zero-flux ("with boundary"), ``False`` for periodical ("no boundary").
     :type boundary: bool
 
-    :param I: initial population. Expect shape ``N x M x 2``. The shape 2 is for init population of U and V in a patch, stored in that order.
-    :type I: list or numpy.ndarray
+    :param init_popu: initial population. Expect shape ``N x M x 2``, the last dimension refers to the initial population of the two species in a patch.
+    :type init_popu: list or numpy.ndarray
 
-    :param X: payoff matrices. Expect shape ``N x M x 4``. The shape 4 is for the flattened 2 x 2 payoff matrix in a patch.
-    :type X: list or numpy.ndarray
+    :param matrices: payoff matrices. Expect shape ``N x M x 4``, the last dimension refers to flattened 2 x 2 payoff matrices in each patch.
+    :type matrices: list or numpy.ndarray
 
-    :param P: patch variables. Expect shape ``N x M x 6``. There are 6 patch variables: :math:`\mu1`, :math:`\mu2`, :math:`w1`, :math:`w2`, :math:`\kappa1`, :math:`\kappa2`, stored in that order.
-    :type P: list or numpy.ndarray
+    :param patch_params: patch parameters. Expect shape ``N x M x 6``. There are 6 parameters in a patch: :math:`\mu1`, :math:`\mu2`, :math:`w1`, :math:`w2`, :math:`\kappa1`, :math:`\kappa2`, stored in that order.
+    :type patch_params: list or numpy.ndarray
 
-    :param print_pct: print progress. Print how much percentage has finished in current round. Messages look like ``round 16, 36%``. Use ``None`` to avoid printing.
-    :type print_pct: int
+    :param print_pct: current progress in percentage. Used to specify progress percentage being printed. Set to ``None`` to disable. Use multiples of 100 to print only every some rounds.
+    :type print_pct: int or ``None``.
 
     :param seed: seed for random number generator. Used to initialize a numpy random generator.
     :type seed: int
@@ -50,11 +49,11 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
     .. attribute:: max_record
 
-        Total number of records this object stores. Equals ``int(maxtime / interval)``.
+        Total number of records this object stores. Equals to ``int(maxtime / interval)``.
 
         :type: int
 
-    .. attribute:: compress_itv
+    .. attribute:: compress_ratio
         
         Number of data points to take average over and then save. Intended to reduce data size. See details at :ref:`Clarifications-compress_data<compress_data>`
 
@@ -62,25 +61,25 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
     .. attribute:: U
         
-        Storage bin for U's population. Has shape ``N x M x max_record`` and data type specified by ``UV_dtype``.
+        Hawk's population. Has shape ``N x M x max_record``.
 
         :type: ``numpy.ndarray``
 
     .. attribute:: V
         
-        Storage bin for V's population. Has shape ``N x M x max_record`` and data type specified by ``UV_dtype``.
+        Dove's population. Has shape ``N x M x max_record``.
 
         :type: ``numpy.ndarray``
 
-    .. attribute:: U_pi
+    .. attribute:: Hpi
         
-        Storage bin for U's population. Has shape ``N x M x max_record`` and data type specified by ``pi_dtype``.
+        Hawk's payoff. Has shape ``N x M x max_record``.
 
         :type: ``numpy.ndarray``
 
-    .. attribute:: V_pi
+    .. attribute:: Dpi
         
-        Storage bin for V's population. Has shape ``N x M x max_record`` and data type specified by ``pi_dtype``.
+        Dove's payoff. Has shape ``N x M x max_record``.
 
         :type: ``numpy.ndarray``
 
@@ -99,15 +98,14 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
     .. method:: clear_data()
 
-        Clear all data storage bins (``U``, ``V``, ``U_pi``, ``V_pi``): set all entries to 0.
-        Data type and shape are not changed.
+        Clear data (``U``, ``V``, ``Hpi``, ``Dpi``): set all 4 objects to ``None``.
 
 
     .. method:: change_maxtime(maxtime)
 
-        Change ``maxtime`` and re-initialize data storage bins. 
+        Change ``maxtime`` and re-initialize data (set to None). 
 
-        Warning: this will result in loss of data, all entries set to 0.
+        Warning: this will result in loss of data.
 
         :param maxtime: the new maxtime
         :type maxtime: float or int
@@ -117,23 +115,23 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
         Set a new seed.
 
-        :param seed: the new seed
+        :param seed: the new seed, must be non-negative.
         :type seed: int
 
-    .. method:: compress_data(compress_itv = 5)
 
-        
+    .. method:: compress_data(compress_ratio = 5)
+
         .. line-block::
             Significantly reduces data size by taking average of every some number of data points and store these averages. See implementation details at :ref:`Clarifications-compress_data<compress_data>`.
             The update is in-place, no return value. 
 
             Notice this results in loss of orginal data.
 
-        :param compress_itv: over how many data points to take average and re-save.
-        :type compress_itv: int
+        :param compress_ratio: over how many data points to take average and re-save.
+        :type compress_ratio: int
 
         .. note::
-            Regarding considerations about conflict with ``interval`` param in ``figures`` module, see :ref:`Clarifications, interval-compress_itv<interval_compress_itv>`
+            Regarding considerations about conflict with ``interval`` param in ``figures`` module, see :ref:`Clarifications, interval-compress_ratio<interval_compress_ratio>`
 
 |
 
@@ -141,7 +139,7 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
 .. py:function:: simulation.run(mod, predict_runtime = False, message = '')
 
-    Run simulations on ``sim``. All data are stored in ``sim``, no return value. Only runs on empty simulation objects and raises error if not empty.
+    Run simulations on ``mod``. All data will be stored in ``mod``. Only runs with empty model objects and raises error if not empty.
 
     :param mod: where all parameters of the model are stored. 
     :type mod: ``piegy.simulation.model`` object
@@ -166,25 +164,26 @@ The simulations are computationally intensive. See brief discussion of runtime a
 
 |
 
-.. _IXP_explanation:
+.. _patch_vars:
 
-``I``, ``X``, ``P`` Params
-------------------------------------------
+``init_popu``, ``matrices``, and ``patch_params``
+-------------------------------------------------------
 
 There are three parameters in our model not explained in detail in the :ref:`piegy.simulation<simulation>` class above: ``I``, ``X``, ``P``, i.e., Initial Population, Payoff Matrices, and Patch Variables. 
 
 We provide detailed explanation here.
 
-* ``I`` has dimension :math:`N \times M \times 2`. ``I[i][j][0]`` is U's initial population at patch :math:`(i,j)`, and ``I[i][j][1]`` is V's initial population.
-* ``X`` has dimension :math:`N \times M \times 4`. ``X[i][j]`` is payoff matrix flattened from the classical  :math:`2 \times 2` format, with U at first row & col, V at second row & col.
-* ``P`` has dimension :math:`N \times M \times 6`. ``P[i][j][0]``, ``P[i][j][1]`` measure likelihood of migration, which we denote by :math:`\mu1`, :math:`\mu2`, for U and V, respectively. 
-    :math:`\mu1`, :math:`\mu2` are in range :math:`(0,1)`, with smaller values for weaker migration behavior, larger values on the contrary. In particular, set :math:`\mu=0` to prevent migration.
-* ``P[i][j][2]``, ``P[i][j][3]`` measure sensitivity to payoff, which we denote by :math:`w1`, :math:`w2`, for U and V, respectively.
-    :math:`w1`, :math:`w2` can be any non-negative number. A typical range is :math:`[0, 1600]`, with smaller values for lower sensitivity to payoff, larger values on the contrary. In particular, set :math:`w=0` for pure random walk.
-* ``P[i][j][2]``, ``P[i][j][3]`` measure carrying capacity, which we denote by :math:`\kappa1`, :math:`\kappa2`, respectively.
-    :math:`\kappa1`, :math:`\kappa2` can also be any non-negative number, while we recommend around :math:`0.001`. Too large :math:`\kappa` values lead to very small equilibrium population and may cause numerical instability.
+* ``init_popu`` has dimension :math:`N \times M \times 2`. ``init_popu[i][j][0]`` is hawk's initial population at patch :math:`(i,j)`, and ``init_popu[i][j][1]`` is dove's initial population.
+* ``matrices`` has dimension :math:`N \times M \times 4`. ``matrices[i][j]`` is payoff matrix flattened from the classical  :math:`2 \times 2` format, with U at first row & col, V at second row & col.
+* ``patch_params`` has dimension :math:`N \times M \times 6`. ``patch_params[i][j][0]``, ``patch_params[i][j][1]`` characterize tendency of migration, which we denote by :math:`\mu1`, :math:`\mu2`, for hawks and doves, respectively. 
+    Non-negative numbers. Use smaller values for weaker migration behavior, larger values on the contrary. In particular, set :math:`\mu=0` to disallow migration.
+* ``patch_params[i][j][2]``, ``patch_params[i][j][3]`` measure sensitivity to payoff, i.e., the extent to which the direction of migration is biased by payoff. We denote by :math:`w1`, :math:`w2`, for hawks and doves, respectively.
+    :math:`w1`, :math:`w2` can be any non-negative number. A typical range is :math:`[0, 500]`, with smaller values for lower sensitivity to payoff, larger values on the contrary. In particular, set :math:`w=0` for pure random walk.
+    However, since ``w1`` and ``w2`` are used in the exponential function ``exp``, large values might result in overflow or reduced accuracy.
+* ``patch_params[i][j][2]``, ``patch_params[i][j][3]`` measure carrying capacity, which we denote by :math:`\kappa1`, :math:`\kappa2`, respectively.
+    :math:`\kappa1`, :math:`\kappa2` can also be any non-negative number, while we recommend around :math:`0.001`. Too large :math:`\kappa` values lead to very small equilibrium population.
 
-Note by using :math:`N \times M \times x` lists/arrays, our model allows each patch to have their independent initial population, payoff matrices, and patch variables. So don't limit to uniform setups!
+Note by using :math:`N \times M \times x` lists/arrays, our model allows each patch to have different initial populations, payoff matrices, and patch variables. So don't restrict your model to uniform setups!
 
 |
 
@@ -209,34 +208,31 @@ To get started right away, you can simply call ``piegy.simulation.demo_model`` a
     mod = simulation.demo_model()
 
 
-Or you can define your own set of parameters. Here is a full list of parameters with values same as ``sim`` above.
+Or you can define your own set of parameters. Here is a full list of parameters with values same as ``mod`` above.
 
 .. code-block:: python
 
     N = 10                  # Number of rows
     M = 10                  # Number of cols
-    maxtime = 300           # how long you want the model to run
+    maxtime = 100           # how long you want the model to run
     record_itv = 0.1        # how often to record data.
     sim_time = 1            # repeat the simulation a few times
     boundary = True         # boundary condition.
 
     # initial population for the N x M patches. 
-    I = [[[44, 22] for _ in range(M)] for _ in range(N)]
+    init_popu = [[[200, 100] for _ in range(M)] for _ in range(N)]
     
     # flattened payoff matrices, total resource is 0.4, cost of fighting is 0.1
-    X = [[[-0.1, 0.4, 0, 0.2] for _ in range(M)] for _ in range(N)]
+    matrices = [[[-1, 4, 0, 2] for _ in range(M)] for _ in range(N)]
     
     # patch variables
-    P = [[[0.5, 0.5, 200, 200, 0.001, 0.001] for _ in range(M)] for _ in range(N)]
+    patch_params = [[[1, 1, 10, 10, 0.001, 0.001] for _ in range(M)] for _ in range(N)]
 
-    print_pct = 5           # print progress
+    print_pct = 50           # print progress
     seed = 36               # seed for random number generation
-    UV_dtype = 'float32'    # data type for population
-    pi_dtype = 'float64'    # data type for payoff
 
     # store in a piegy.simulation.model object
-    mod = simulation.model(N, M, maxtime, record_itv, sim_time, boundary, I, X, P, 
-                            print_pct = print_pct, seed = seed, UV_dtype = UV_dtype, pi_dtype = pi_dtype)
+    mod = simulation.model(N, M, maxtime, record_itv, sim_time, boundary, init_popu, matrices, patch_params, print_pct, seed)
 
 .. line-block::
     Now we can run the simulation: simply call ``piegy.simulation.run``. Runtime may vary based on what parameters you use.

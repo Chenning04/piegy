@@ -15,8 +15,8 @@ Contains a stochastic model and analytic tools.
 
 Full name: *Payoff-Driven Stochastic Spatial Model for Evolutionary Game Theory*
 
-GitHub repository at: `piegy GitHub-repo <https://github.com/Chenning04/piegy.git>`_.
-PyPI page: `piegy PyPI-page <https://pypi.org/project/piegy/>`_.
+GitHub repository at: `piegy GitHub Repo <https://github.com/Chenning04/piegy.git>`_.
+PyPI page: `piegy PyPI Page <https://pypi.org/project/piegy/>`_.
 
 *Still under debugging*
 

@@ -264,7 +264,7 @@ def UV_expected(mod, ax_H = None, ax_D = None, color_H = 'Purples', color_D = 'G
                 If 1D (N or M == 1), then ax_H and ax_D are barplots.
     '''
     
-    U_expected, V_expected = simulation.UV_expected_val(mod)
+    U_expected, V_expected, _ = simulation.UV_expected_val(mod)
     
     U_text = figure_t.gen_text(np.mean(U_expected), np.std(U_expected))
     V_text = figure_t.gen_text(np.mean(V_expected), np.std(V_expected))

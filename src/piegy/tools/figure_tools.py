@@ -43,11 +43,11 @@ def hmap(data, ax = None, cmap = "Greens", title = None, text = None, vmin = Non
         fig = ax.get_figure()
 
     if text != None:
-        ax.text(0.86, 1.025, text, size = 11, linespacing = 1.5, transform = ax.transAxes)
+        ax.text(0.70, 1.025, text, size = 10, linespacing = 1.5, transform = ax.transAxes)
 
     im = ax.imshow(data, cmap = cmap, vmin = vmin, vmax = vmax)
     fig.colorbar(im, ax = ax)
-    ax.set_title(title, x = 0.5, y = 1)
+    ax.set_title(title, x = 0.5, y = 1.07)
     
     return ax
 
@@ -127,11 +127,21 @@ def gen_title(title, start, end):
 
 
 
+def gen_title_only_start(title, start, end):
+    '''
+    Generate a title for plot when it's about an interval of time.
+    only the start time will be displayed
+    '''
+    title += ", " + str(round(start * 100, 1)) + "%"
+    return title
+
+
+
 def gen_text(ave, std):
     '''
     Generate text about standard deviation info.
     '''
-    text = "ave = " + str(round(ave, 2)) #  + ", std=" + str(round(std, 2))
+    text = "ave = " + str(round(ave, 2))
     return text
 
 
@@ -155,7 +165,13 @@ def ave_interval(data, start_index, end_index):
     
     # plot a particular record
     if start_index == end_index:
-        start_index = end_index - 1
+        # exactly one record
+        if end_index < len(data[0][0]) - 1:
+            # not in the end, move forward by 1
+            end_index = start_index + 1
+        else:
+            # in the end, move backward by 1
+            start_index = end_index - 1
         
     data_ave = np.zeros((N, M))
     
@@ -186,8 +202,15 @@ def ave_interval_1D(data, start_index, end_index):
     N = len(data)
     M = len(data[0])
 
+    # plot a particular record
     if start_index == end_index:
-        end_index = start_index + 1  # exactly one record
+        # exactly one record
+        if end_index < len(data[0][0]) - 1:
+            # not in the end, move forward by 1
+            end_index = start_index + 1
+        else:
+            # in the end, move backward by 1
+            start_index = end_index - 1
         
     data_ave = np.zeros(N * M)
     

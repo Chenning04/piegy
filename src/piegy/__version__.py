@@ -1,4 +1,4 @@
-__version__ = '2.3.10'
+__version__ = '2.3.12'
 
 '''
 version history:
@@ -48,4 +48,5 @@ version history:
 2.3.9: now use xoshiro256+ as RNG.
 2.3.10: remove requirement for init population being equal in combine_mod. Change function name to combine_mod (from combine_sim).
 2.3.11: debugging and renameed some variables.
+2.3.12: fix bug in make_video.
 '''

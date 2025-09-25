@@ -411,6 +411,7 @@ This function plots how U, V equilibrium population change with values of ``mu1`
 
 You can also plot change of payoff by ``test_var.var_pi1``:
 
+
 .. code-block:: python
 
     fig_pi, ax_pi = plt.subplots(2, 1, figsize = (6.4, 9.6))

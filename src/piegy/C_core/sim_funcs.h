@@ -226,7 +226,7 @@ static inline uint8_t update_mig_weight_rate(patch_t* restrict p, const uint8_t 
 
 
 static inline uint8_t init_mig(patch_t* restrict p) {
-    // update migration rate for all directions
+    // initialize migration rate for all directions
 
     double* p_H_weight = p->H_weight;
     double* p_D_weight = p->D_weight;

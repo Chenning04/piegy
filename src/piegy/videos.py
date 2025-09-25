@@ -20,9 +20,8 @@ others not documented here.
 from . import figures
 from .tools import file_tools as file_t
 
-import matplotlib as mpl
-# switched to Agg in make_video
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import numpy as np
 import os
 from cv2 import imread, VideoWriter, VideoWriter_fourcc
@@ -240,10 +239,6 @@ def make_video(mod, func_name = None, frames = 100, dpi = 200, fps = 30, color_H
 
     # convert color if invalid colors are given
     color_H, color_D = convert_color(func_name, color_H, color_D)
-
-    # set Agg backend for faster speed
-    original_backend = mpl.get_backend()
-    mpl.use("Agg")
     
     # print progress
     one_progress = frames / 100
@@ -257,8 +252,8 @@ def make_video(mod, func_name = None, frames = 100, dpi = 200, fps = 30, color_H
         H_xlim, H_ylim, V_xlim, V_ylim = frame_lim(mod, func, frames)
 
     
-    H_frame_dirs = dirs + '/U-' + func_name
-    V_frame_dirs = dirs + '/V-' + func_name
+    H_frame_dirs = dirs + '/H_' + func_name
+    V_frame_dirs = dirs + '/D_' + func_name
     
     if os.path.exists(H_frame_dirs):
         file_t.del_dirs(H_frame_dirs)
@@ -302,16 +297,22 @@ def make_video(mod, func_name = None, frames = 100, dpi = 200, fps = 30, color_H
                 ax_D.set_xlim(H_xlim)
                 ax_D.set_xlim(V_xlim)
 
+        canvas_H = FigureCanvas(fig_H)
+        canvas_H.draw()
+        canvas_D = FigureCanvas(fig_D)
+        canvas_D.draw()
+
         fig_H.savefig(H_frame_dirs + '/' + 'H_frame_' + str(i) + '.png', pad_inches = 0.25, dpi = dpi)
         fig_D.savefig(V_frame_dirs + '/' + 'V_frame_' + str(i) + '.png', pad_inches = 0.25, dpi = dpi)
         
+        fig_H.clf()
+        fig_D.clf()
         plt.close(fig_H)
         plt.close(fig_D)
+        del canvas_H
+        del canvas_D
         
     #### for loop ends ####
-
-    # reset to original backend
-    mpl.use(original_backend)
     
     # frames done
     print('making mp4...      ', end = '\r')
